@@ -4,13 +4,30 @@ import { headers } from 'next/headers';
 import { database } from './store';
 const COOKIE='ursula_taller';
 const digest=(s:string)=>createHash('sha256').update(s).digest('hex');
-const version=()=>digest(`${process.env.ADMIN_USERNAME}:${process.env.ADMIN_PASSWORD_HASH}`);
-export function configured(){return !!process.env.ADMIN_USERNAME&&/^pbkdf2-sha256:100000:[a-f0-9]{32}:[a-f0-9]{64}$/.test(process.env.ADMIN_PASSWORD_HASH||'');}
+const HASH=/^pbkdf2-sha256:100000:[a-f0-9]{32}:[a-f0-9]{64}$/;
+// A password changed from the panel (stored in the database) takes precedence over the one in .env.local.
+function credentials(){
+  const row=database().prepare('SELECT username,hash FROM admin_credentials WHERE id=1').get() as {username:string;hash:string}|undefined;
+  return row?{username:row.username,hash:row.hash}:{username:process.env.ADMIN_USERNAME||'',hash:process.env.ADMIN_PASSWORD_HASH||''};
+}
+const version=()=>{const c=credentials();return digest(`${c.username}:${c.hash}`);};
+export function configured(){const c=credentials();return !!c.username&&HASH.test(c.hash);}
+export function hashPassword(password:string){const salt=randomBytes(16).toString('hex');return `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password,salt,100000,32,'sha256').toString('hex')}`;}
 export function verifyCredentials(username:string,password:string){
   if(!configured())return false;
-  const [,,salt,expected]=process.env.ADMIN_PASSWORD_HASH!.split(':');
+  const c=credentials();
+  const [,,salt,expected]=c.hash.split(':');
   const actual=pbkdf2Sync(password,salt,100000,32,'sha256');
-  return timingSafeEqual(actual,Buffer.from(expected,'hex'))&&username===process.env.ADMIN_USERNAME;
+  return timingSafeEqual(actual,Buffer.from(expected,'hex'))&&username===c.username;
+}
+/** Verifies the current password, stores the new one and revokes every session (including this one). */
+export function changePassword(current:string,next:string){
+  const c=credentials();
+  if(!verifyCredentials(c.username,current))return false;
+  const db=database();
+  db.prepare('INSERT INTO admin_credentials VALUES (1,?,?) ON CONFLICT(id) DO UPDATE SET username=excluded.username,hash=excluded.hash').run(c.username,hashPassword(next));
+  db.prepare('DELETE FROM sessions').run();
+  return true;
 }
 function token(h:Headers){return h.get('cookie')?.split(';').map(v=>v.trim()).find(v=>v.startsWith(COOKIE+'='))?.slice(COOKIE.length+1)||'';}
 export async function hasAdminSession(request?:Request){

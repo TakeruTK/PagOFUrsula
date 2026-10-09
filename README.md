@@ -1,63 +1,66 @@
 # Úrsula Alcaíno · Orfebrería
 
-Propuesta de tienda para **Úrsula Alcaíno Orfebrería**: un diseño en marfil y verde profundo, fotografías protagonistas, catálogo de joyas, bolsa de compra y un taller privado para administrar el contenido.
-
-**Estado: demostración funcional.** Los nombres, precios y stock iniciales son ejemplos editables. El pago se simula localmente, sin cobrar dinero ni conectarse a Mercado Pago. Este repositorio contiene el proyecto completo; todavía no hay una tienda pública desplegada.
-
-## Vista previa
-
-![Portada de la tienda](review/tienda-escritorio.png)
-
-![Panel de administración](review/admin.png)
-
-[Ver la página completa en móvil](review/tienda-movil.png)
+Tienda en línea de joyería de autor, en español e inglés, con pagos por **Mercado Pago** (pesos chilenos) y **PayPal** (dólares), SEO internacional y un taller privado para administrar piezas, pedidos, envíos y textos.
 
 ## Ejecutar
 
-Requiere Node 24 o superior y pnpm. Clona el repositorio y ejecuta:
+Requiere Node 24 o superior (funciona en Node 22.17) y pnpm.
 
 ```sh
-git clone https://github.com/TakeruTK/PagOFUrsula.git
-cd PagOFUrsula
 pnpm install --frozen-lockfile
-node scripts/setup-admin.mjs
-pnpm dev
+pnpm admin:setup        # crea el usuario `ursula` y muestra su contraseña una sola vez
+pnpm dev                # http://127.0.0.1:3002
 ```
 
-También puedes usar `npm install` y `npm run dev` si tienes npm disponible. La tienda está en `http://127.0.0.1:3002` y el taller en `/admin`. El proyecto es independiente y no requiere los archivos de la página utilizada como base.
+Producción: `pnpm build && pnpm start` detrás de HTTPS y con disco persistente (SQLite + fotos en `data/` o en `DATA_DIR`). No sirve para despliegues sin disco (Vercel/Cloudflare Workers).
 
-Con las dependencias instaladas también puedes iniciarla directamente:
+## Variables de entorno
 
-```sh
-node node_modules/next/dist/bin/next dev --webpack --hostname 127.0.0.1 --port 3002
-```
+Se leen del archivo `.env.local` o del entorno del servidor. Ninguna secreta llega al navegador ni se guarda en el panel.
 
-`setup-admin.mjs` genera un usuario `ursula` y muestra una contraseña aleatoria una sola vez. Guarda únicamente el hash en `.env.local`, excluido de Git. Si ya está configurado, no cambia nada. Para restablecerlo: `node scripts/setup-admin.mjs --reset`, y reiniciar el servidor. Las sesiones anteriores quedan invalidadas.
+| Variable | Para qué sirve |
+| --- | --- |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` | Acceso al taller (los genera `pnpm admin:setup`). La contraseña se puede cambiar desde el panel (Seguridad). |
+| `SITE_URL` | Dirección pública con `https://`. Define enlaces canónicos, hreflang, sitemap y retornos de pago. |
+| `ALLOW_INDEXING` | `true` solo cuando la clienta apruebe la tienda y `SITE_URL` sea https. Mientras no, todo el sitio lleva `noindex` y `robots.txt` bloquea a los buscadores. |
+| `DATA_DIR` | Carpeta persistente de la base de datos y las fotos. |
+| `PAYMENT_MODE` | `demo` = simulador sin cobros (para revisión). `live` = pagos reales. |
+| `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET` | Mercado Pago. |
+| `PAYPAL_ENV` (`sandbox`/`live`), `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` | PayPal. |
+| `RESEND_API_KEY`, `MAIL_FROM` | Correos de confirmación y despacho (opcional). |
 
-## Funciones
+## Activar los pagos
 
-- Tienda adaptable a móvil, filtros, búsqueda, orden por precio, detalle de pieza, múltiples fotografías y bolsa persistida en el navegador.
-- Compra de prueba con resultados aprobado, pendiente y rechazado. Usa un nombre y correo ficticios; no se envían correos.
-- Panel protegido: crear/editar/eliminar piezas; hasta 8 fotografías; portada y pies de foto; categorías, materiales, precios, stock, disponibilidad y borradores; orden y destacados.
-- La primera pieza destacada publicada es la fotografía principal; la siguiente es la secundaria. Si no hay piezas, la portada utiliza las referencias iniciales.
-- Editar título e introducción de portada, título de colección, historia y perfil de Instagram.
-- Consultar los últimos 200 pedidos simulados.
+1. **Mercado Pago** (cuenta de Chile): crea una aplicación en *Mercado Pago Developers*, copia el *Access Token* a `MP_ACCESS_TOKEN`. En *Webhooks* registra `https://TU-DOMINIO/api/webhooks/mercadopago` para el evento *Pagos* y copia la clave secreta a `MP_WEBHOOK_SECRET`. Se ofrece solo para envíos a Chile.
+2. **PayPal**: crea una app en *developer.paypal.com* (primero `sandbox`), copia `PAYPAL_CLIENT_ID` y `PAYPAL_CLIENT_SECRET`. Registra `https://TU-DOMINIO/api/webhooks/paypal` con los eventos `PAYMENT.CAPTURE.COMPLETED`, `DENIED` y `REFUNDED` y copia el *Webhook ID* a `PAYPAL_WEBHOOK_ID`. Se ofrece en todos los países y cobra en USD.
+3. Pon `PAYMENT_MODE=live`, reinicia el servidor y haz una compra de prueba con las credenciales *sandbox*/de prueba antes de pasar a producción.
 
-Los productos, fotos subidas, textos, sesiones y pedidos se guardan en `data/ursula.sqlite`. El archivo y sus auxiliares WAL/SHM son propios de esta tienda. Para otro directorio persistente configura `DATA_DIR`. Copiar la carpeta data con el servidor detenido para respaldarla. Este almacenamiento requiere un servidor Node con disco persistente: no es un deploy estático ni una configuración para Cloudflare Workers/D1.
+Cómo funciona (seguridad):
 
-## Mercado Pago: estado real
+- El servidor calcula precios, envío y total desde su propio catálogo; ignora lo que envíe el navegador.
+- Un pedido reserva su stock 45 minutos; el stock se descuenta recién cuando el pago se **confirma**.
+- Mercado Pago: se crea la preferencia en el servidor; el webhook (firma `x-signature` verificada) solo avisa, y el pago se **vuelve a consultar** a la API de Mercado Pago comparando pedido, monto y moneda. Si el comprador vuelve antes del webhook, la página del pedido consulta a Mercado Pago directamente.
+- PayPal: la orden se crea en el servidor; al volver, el servidor captura y verifica monto y moneda. El webhook se verifica con la API de PayPal y la captura se vuelve a consultar.
+- Cada confirmación es idempotente: repetir un aviso no descuenta stock dos veces.
 
-`PAYMENT_MODE=demo` es el único modo implementado. **No hay conexión a Mercado Pago, no hay cobros y no se piden tarjetas**. Cambiar el modo a cualquier otro valor bloquea la operación. El simulador no reserva ni descuenta inventario. El despacho se muestra como por coordinar y no se calcula.
+## Moneda y envíos
 
-La separación de proveedor está en `lib/payments.ts`. El servidor valida disponibilidad y cantidades, obtiene precios desde su catálogo y calcula el total; ignora precios enviados por el navegador. Una clave de idempotencia evita pedidos duplicados en reintentos y rechaza reutilizarla con otros datos.
+Los precios base están en CLP. PayPal cobra en USD usando el tipo de cambio de *Envíos y precios* (CLP por 1 USD). Los costos y plazos de envío se definen por zona (Chile, Latinoamérica, resto del mundo) y se calculan según el país elegido.
 
-Para el lanzamiento falta implementar y validar el proveedor real: credenciales privadas de Mercado Pago y cuenta de prueba; creación de preferencia en servidor; redirección a Checkout Pro; webhook verificado y consulta del pago a Mercado Pago para reconciliar monto, moneda, pedido y estado; idempotencia de eventos, reservas y actualización transaccional de stock. Nunca usar el retorno del navegador para confirmar el pago. También faltan acordar envíos, política de cambios/devoluciones, privacidad, dominio y correo de pedidos, y reemplazar el catálogo de ejemplo. Revisar la documentación oficial vigente al implementar. No poner tokens de Mercado Pago en el navegador ni en campos públicos del panel.
+## SEO internacional
 
-## Referencias y contenido
+- Rutas por idioma: `/es` y `/en`; `/` redirige según el idioma del navegador.
+- Direcciones traducidas: `/es/joyas/<pieza>` ↔ `/en/jewelry/<pieza>`, `/es/terminos` ↔ `/en/terms`, etc.
+- `canonical`, `hreflang` (es, en, x-default), Open Graph y Twitter por página; imagen social generada.
+- Datos estructurados JSON-LD: Organization, WebSite, Product (+ Offer en CLP o USD) y BreadcrumbList.
+- `sitemap.xml` con todas las versiones de idioma y `robots.txt` dinámico.
+- Cada pieza tiene página propia indexable; el panel permite nombre, descripción, materiales y descripción de foto en inglés.
 
-Las cinco capturas aportadas por el usuario están en `public/references/`. La tienda encuadra productos mediante vistas SVG y CSS, conserva las proporciones y las imágenes fuente y no genera fotografías ficticias. Los nombres de las piezas y los precios son ejemplos editoriales claramente identificados, y el stock inicial es de demostración. Los materiales y medidas no se afirman como confirmados. El texto de presentación es una propuesta para revisión de la autora, no una biografía verificada. La captura sobre Mercado Pago se conserva como referencia visual, no como evidencia de una integración activa en esta tienda.
+Antes de abrir al público: define `SITE_URL` (https), sube fotografías reales, revisa envíos y políticas, y recién entonces pon `ALLOW_INDEXING=true`. El panel (*Resumen* y *Pagos y lanzamiento*) muestra qué falta.
 
-Instagram: https://www.instagram.com/ursulaalcaino/ (el acceso automatizado al perfil fue bloqueado; se trabajó con las imágenes entregadas). Reemplazar capturas por fotografías originales antes del lanzamiento.
+## Taller (panel)
+
+`/admin`: resumen y lista de lanzamiento; piezas (fotos, slug, inglés, duplicar, stock); pedidos (estados, despacho con seguimiento, reembolso, exportar CSV); textos en español e inglés; envíos y tipo de cambio; políticas; estado de pagos y webhooks; cambio de contraseña.
 
 ## Validación
 
@@ -67,8 +70,8 @@ pnpm build
 pnpm test
 ```
 
-Las pruebas de integración levantan la compilación de producción en el puerto 3013 con credenciales aleatorias y una base aislada en `test-results/`; no alteran el catálogo de trabajo. Cubren autenticación, origen, privacidad de borradores/fotos, carga y publicación, cambios del perfil, cálculo del total, los tres resultados de pago, idempotencia, límites de stock, cierre de sesión y límite de intentos. Detienen su propio servidor al terminar.
+Las pruebas arrancan la compilación de producción con bases aisladas y APIs falsas de Mercado Pago y PayPal. Cubren seguridad del panel, catálogo, ambos flujos de pago (firmas, montos, idempotencia, stock), reservas, reglas de envío, gestión de pedidos, negociación de idioma, hreflang/canonical/JSON-LD, indexación en revisión vs. producción, simulador y cambio de contraseña.
 
-Validación realizada: compilación de producción y TypeScript correctos; 7 pruebas de integración aprobadas; compra aprobada y pedido visible en el panel comprobados desde el navegador; escritorio y móvil de 390 px revisados sin desbordamiento horizontal. Capturas en `review/`.
+## Pendiente de la clienta
 
-Para producción: `pnpm build` y `pnpm start`, detrás de HTTPS con disco persistente. Las cookies son Secure en producción. Se mantiene `noindex` hasta que la tienda y sus datos reales estén aprobados. No se ha publicado el sitio.
+Fotografías originales y catálogo real; costos de envío; revisión legal de las políticas (son borradores); dominio `.com`; credenciales de Mercado Pago y PayPal; correo de pedidos.

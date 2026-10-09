@@ -7,5 +7,6 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
   if(!visible&&!await hasAdminSession(request))return new Response(null,{status:404});
   const photo=database().prepare('SELECT * FROM photos WHERE id=?').get(id);
   if(!photo)return new Response(null,{status:404});
-  return new Response(new Uint8Array(photo.bytes as Uint8Array),{headers:{'Content-Type':photo.type as string,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+  // Published photos never change (new uploads get a new id), so browsers and search engines may cache them.
+  return new Response(new Uint8Array(photo.bytes as Uint8Array),{headers:{'Content-Type':photo.type as string,'Cache-Control':visible?'public, max-age=31536000, immutable':'private, no-store','X-Content-Type-Options':'nosniff'}});
 }

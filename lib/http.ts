@@ -4,3 +4,11 @@ export async function jsonBody(request:Request,max=50000){
   try {return JSON.parse(text);}catch{throw new Error('El contenido no es válido.');}
 }
 export function invalid(error:unknown){return Response.json({error:error instanceof Error?error.message:'No pudimos completar la operación.'},{status:400});}
+import { database } from './store';
+/** Shared (not per-visitor) budget: protects the owner's stock reservations and payment accounts from floods. */
+export function withinBudget(key:string,max:number,windowMs:number){
+  const db=database();const now=Date.now();
+  db.prepare('DELETE FROM attempts WHERE expires<=?').run(now);
+  const row=db.prepare('INSERT INTO attempts VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count').get(key,now+windowMs);
+  return Number(row?.count)<=max;
+}
