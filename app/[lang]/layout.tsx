@@ -1,21 +1,20 @@
 import type { Metadata, Viewport } from 'next';
-import { DM_Sans, Italiana } from 'next/font/google';
+import { Cormorant_Garamond, Outfit } from 'next/font/google';
 import { notFound } from 'next/navigation';
-import '../globals.css';
+import '../site.css';
+import Reveal from '@/components/reveal';
 import SiteFooter from '@/components/site-footer';
 import SiteHeader from '@/components/site-header';
-import { StoreProvider } from '@/components/store';
-import { configuredProviders, paymentMode, siteUrl } from '@/lib/config';
+import { siteUrl } from '@/lib/config';
 import { getDictionary } from '@/lib/dictionaries';
 import { htmlLang, isLocale, locales } from '@/lib/i18n';
-import { toCards } from '@/lib/catalog';
 import { robotsMeta } from '@/lib/seo';
-import { getPieces, getSettings } from '@/lib/store';
+import { getSettings } from '@/lib/store';
 
-const sans = DM_Sans({ subsets: ['latin', 'latin-ext'], variable: '--font-sans', display: 'swap' });
-const serif = Italiana({ subsets: ['latin'], weight: '400', variable: '--font-serif', display: 'swap' });
+const serif = Cormorant_Garamond({ subsets: ['latin', 'latin-ext'], weight: ['300', '400', '500'], style: ['normal', 'italic'], variable: '--font-serif', display: 'swap' });
+const sans = Outfit({ subsets: ['latin', 'latin-ext'], weight: ['300', '400'], variable: '--font-sans', display: 'swap' });
 
-export const viewport: Viewport = { themeColor: '#f7f5ef', width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = { themeColor: '#0f0e0c', width: 'device-width', initialScale: 1 };
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   robots: robotsMeta(),
@@ -28,15 +27,13 @@ export const dynamic = 'force-dynamic';
 export default async function LangLayout({ children, params }: { children: React.ReactNode; params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
-  const settings = getSettings();
-  const catalog = toCards(getPieces(), lang);
-  return <html lang={htmlLang[lang]} className={`${sans.variable} ${serif.variable}`}>
+  const dict = getDictionary(lang);
+  return <html lang={htmlLang[lang]} className={`${serif.variable} ${sans.variable}`}>
     <body>
-      <StoreProvider shared={{ lang, dict: getDictionary(lang), catalog, usdRate: settings.usdRate, shipping: settings.shipping, providers: configuredProviders(), mode: paymentMode(), instagram: settings.instagram }}>
-        <SiteHeader />
-        {children}
-        <SiteFooter lang={lang} dict={getDictionary(lang)} instagram={settings.instagram} />
-      </StoreProvider>
+      <SiteHeader lang={lang} dict={dict} />
+      {children}
+      <Reveal />
+      <SiteFooter lang={lang} dict={dict} instagram={getSettings().instagram} />
     </body>
   </html>;
 }

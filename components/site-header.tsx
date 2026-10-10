@@ -1,51 +1,35 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { ArrowUpRight, Menu, Search, ShoppingBag, UserRound } from 'lucide-react';
-import { fmt } from '@/lib/dictionaries';
-import { locales, switchLocalePath } from '@/lib/i18n';
-import { Brand } from './brand';
-import Modal from './modal';
-import { useStore } from './store';
+import { usePathname } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
+import type { Dictionary } from '@/lib/dictionaries';
+import { locales, pagePath, switchLocalePath, type Locale } from '@/lib/i18n';
 
-export default function SiteHeader() {
-  const { lang, dict, count, setBagOpen, currency, setCurrency, mode } = useStore();
+export default function SiteHeader({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [menu, setMenu] = useState(false);
-  const [search, setSearch] = useState(false);
-  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const home = `/${lang}`;
-  const links: [string, string][] = [[dict.nav.collection, `${home}#coleccion`], [dict.nav.universe, `${home}#universo`], [dict.nav.contact, `${home}#contacto`]];
+  const links: [string, string][] = [[dict.nav.collection, pagePath(lang, 'collection')], [dict.nav.about, pagePath(lang, 'about')], [dict.nav.contact, pagePath(lang, 'contact')]];
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  useEffect(() => setOpen(false), [pathname]);
 
   const remember = (locale: string) => { try { document.cookie = `NEXT_LOCALE=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`; } catch { /* ignore */ } };
+  const language = <div className="lang" role="group" aria-label={dict.nav.language}>{locales.map(l => <Link key={l} href={switchLocalePath(pathname, l)} hrefLang={l} lang={l} aria-current={l === lang ? 'true' : undefined} onClick={() => remember(l)}>{l.toUpperCase()}</Link>)}</div>;
+
   return <>
-    <div className="announcement"><span>{dict.announcement}</span><span>{mode === 'demo' ? dict.demoBanner : dict.announcementShipping}</span></div>
-    <header className="site-header">
-      <nav className="desktop-nav" aria-label={dict.nav.collection}>{links.slice(0, 2).map(([name, href]) => <Link key={href} href={href}>{name}</Link>)}</nav>
-      <button className="icon-button mobile-menu" aria-label={dict.nav.menu} onClick={() => setMenu(true)}><Menu size={22} /></button>
-      <Brand href={home} label={`${dict.site.name} · ${dict.nav.home}`} />
-      <div className="header-tools">
-        <div className="switches">
-          <div className="switch" role="group" aria-label={dict.nav.language}>{locales.map(l => <Link key={l} href={switchLocalePath(pathname, l)} hrefLang={l} lang={l} aria-current={l === lang ? 'true' : undefined} className={l === lang ? 'active' : ''} onClick={() => remember(l)}>{l.toUpperCase()}</Link>)}</div>
-          <div className="switch switch-currency" role="group" aria-label={dict.nav.currency}>{(['CLP', 'USD'] as const).map(c => <button key={c} aria-pressed={currency === c} className={currency === c ? 'active' : ''} onClick={() => setCurrency(c)}>{c}</button>)}</div>
-        </div>
-        <button className="icon-button" aria-label={dict.nav.search} onClick={() => setSearch(true)}><Search size={20} /></button>
-        <Link className="icon-button account-link" href="/admin" aria-label={dict.nav.workshop} rel="nofollow"><UserRound size={20} /></Link>
-        <button className="bag-button" onClick={() => setBagOpen(true)} aria-label={fmt(dict.nav.openBag, { count })}><ShoppingBag size={20} /><span className="bag-word">{dict.nav.bag}</span><span className="bag-count">{count}</span></button>
-      </div>
-    </header>
-    <Modal open={menu} onClose={() => setMenu(false)} title={dict.nav.menuTitle} description={dict.nav.menuDescription} className="menu-modal" closeLabel={dict.nav.close}>
-      <nav>{links.map(([name, href]) => <Link key={href} href={href} onClick={() => setMenu(false)}>{name}<ArrowUpRight size={18} /></Link>)}</nav>
-      <div className="menu-currency"><span>{dict.nav.language}</span><div className="switch" role="group" aria-label={dict.nav.language}>{locales.map(l => <Link key={l} href={switchLocalePath(pathname, l)} hrefLang={l} lang={l} aria-current={l === lang ? 'true' : undefined} className={l === lang ? 'active' : ''} onClick={() => { remember(l); setMenu(false); }}>{l.toUpperCase()}</Link>)}</div></div>
-      <div className="menu-currency"><span>{dict.nav.currency}</span><div className="switch" role="group" aria-label={dict.nav.currency}>{(['CLP', 'USD'] as const).map(c => <button key={c} aria-pressed={currency === c} className={currency === c ? 'active' : ''} onClick={() => setCurrency(c)}>{c}</button>)}</div></div>
-    </Modal>
-    <Modal open={search} onClose={() => setSearch(false)} title={dict.nav.search} description={dict.collection.searchLabel} className="search-modal" closeLabel={dict.nav.close}>
-      <form onSubmit={e => { e.preventDefault(); setSearch(false); router.push(`${home}${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ''}#coleccion`); }}>
-        <label className="field">{dict.collection.searchLabel}<input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder={dict.collection.searchPlaceholder} maxLength={80} /></label>
-        <button className="button" type="submit">{dict.nav.search} <Search size={17} /></button>
-      </form>
-    </Modal>
+    <nav className={`nav ${scrolled ? 'scrolled' : ''}`} aria-label={dict.nav.menuTitle}>
+      <Link className="wordmark" href={home} aria-label={`${dict.site.name} · ${dict.nav.home}`}>úrsula alcaíno</Link>
+      <div className="nav-links">{links.map(([name, href]) => <Link key={href} href={href} aria-current={pathname === href ? 'page' : undefined}>{name}</Link>)}{language}</div>
+      <button className="menu-button" aria-label={open ? dict.nav.close : dict.nav.menu} aria-expanded={open} onClick={() => setOpen(o => !o)}>{open ? <X size={22} strokeWidth={1.4} /> : <Menu size={22} strokeWidth={1.4} />}</button>
+    </nav>
+    <div className={`menu-panel ${open ? 'open' : ''}`}>{links.map(([name, href]) => <Link key={href} href={href} aria-current={pathname === href ? 'page' : undefined} onClick={() => setOpen(false)}>{name}</Link>)}{language}</div>
   </>;
 }

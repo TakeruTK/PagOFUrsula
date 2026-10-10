@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { allowIndexing, siteUrl } from './config';
-import { locales, ogLocale, type Locale } from './i18n';
+import { locales, ogLocale, pagePath, type Locale, type PageKey } from './i18n';
 
 export const absolute = (path: string) => `${siteUrl()}${path.startsWith('/') ? path : `/${path}`}`;
 
@@ -16,3 +16,13 @@ export const openGraphBase = (locale: Locale) => ({ siteName: 'Úrsula Alcaíno 
 
 /** Serialises JSON-LD safely for a <script> tag. */
 export const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, '\u003c');
+
+/** Metadata for the static pages (collection, about, contact), with every language version linked. */
+export function pageMetadata(locale: Locale, key: PageKey, title: string, description: string): Metadata {
+  const paths = Object.fromEntries(locales.map(l => [l, pagePath(l, key)])) as Record<Locale, string>;
+  return {
+    title, description, alternates: alternates(locale, paths),
+    openGraph: { ...openGraphBase(locale), title, description, url: absolute(paths[locale]) },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}

@@ -6,21 +6,22 @@ export const isLocale = (value: string): value is Locale => (locales as readonly
 export const htmlLang: Record<Locale, string> = { es: 'es', en: 'en' };
 export const ogLocale: Record<Locale, string> = { es: 'es_CL', en: 'en_US' };
 export const intlLocale: Record<Locale, string> = { es: 'es-CL', en: 'en-US' };
-export const defaultCurrency: Record<Locale, 'CLP' | 'USD'> = { es: 'CLP', en: 'USD' };
 
-export type LegalDoc = 'terms' | 'privacy' | 'shipping';
-export const legalDocs: LegalDoc[] = ['terms', 'privacy', 'shipping'];
+export type LegalDoc = 'terms' | 'privacy';
+export const legalDocs: LegalDoc[] = ['terms', 'privacy'];
 
 // URL segments are translated so that each language has natural, indexable addresses.
+export type PageKey = 'collection' | 'about' | 'contact';
+export const pageKeys: PageKey[] = ['collection', 'about', 'contact'];
 export const segments = {
-  es: { piece: 'joyas', terms: 'terminos', privacy: 'privacidad', shipping: 'envios-y-devoluciones' },
-  en: { piece: 'jewelry', terms: 'terms', privacy: 'privacy', shipping: 'shipping-returns' },
+  es: { piece: 'joyas', terms: 'terminos', privacy: 'privacidad', collection: 'coleccion', about: 'sobre-mi', contact: 'contacto' },
+  en: { piece: 'jewelry', terms: 'terms', privacy: 'privacy', collection: 'collection', about: 'about', contact: 'contact' },
 } as const;
 
 export const homePath = (locale: Locale) => `/${locale}`;
 export const piecePath = (locale: Locale, slug: string) => `/${locale}/${segments[locale].piece}/${slug}`;
+export const pagePath = (locale: Locale, key: PageKey) => `/${locale}/${segments[locale][key]}`;
 export const legalPath = (locale: Locale, doc: LegalDoc) => `/${locale}/${segments[locale][doc]}`;
-export const orderPath = (locale: Locale, id: string) => `/${locale}/order/${id}`;
 
 /** Translates the current pathname into the equivalent page of another language. */
 export function switchLocalePath(pathname: string, to: Locale): string {
@@ -29,7 +30,7 @@ export function switchLocalePath(pathname: string, to: Locale): string {
   if (!from || !isLocale(from)) return homePath(to);
   const rest = parts.slice(1);
   if (rest.length) {
-    for (const key of ['piece', 'terms', 'privacy', 'shipping'] as const) {
+    for (const key of ['piece', 'terms', 'privacy', 'collection', 'about', 'contact'] as const) {
       if (rest[0] === segments[from][key]) rest[0] = segments[to][key];
     }
   }

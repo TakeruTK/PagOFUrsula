@@ -19,7 +19,7 @@ export function proxy(request: NextRequest) {
     response = NextResponse.redirect(url, 307);
     response.headers.set('Vary', 'Accept-Language, Cookie');
   } else response = NextResponse.next();
-  const privateArea = pathname.startsWith('/admin') || pathname.startsWith('/api/') || parts[2] === 'order';
+  const privateArea = pathname.startsWith('/admin') || pathname.startsWith('/api/');
   if (!allowIndexing() || privateArea) response.headers.set('X-Robots-Tag', 'noindex, nofollow');
   if (isHttps()) response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   return response;

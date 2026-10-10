@@ -1,96 +1,70 @@
 import { slugify, type Piece, type Settings } from './pieces';
 
 const policiesEs = {
-  terms: `Condiciones de compra de Úrsula Alcaíno · Orfebrería
+  terms: `Condiciones de las consultas y compras
 
-1. Quién vende. Las joyas de esta tienda son creadas y vendidas por Úrsula Alcaíno · Orfebrería. Puedes escribirnos al correo de contacto publicado en el sitio.
+Las joyas de este sitio son creadas por Úrsula Alcaíno · Orfebrería. La mayoría son piezas únicas y no se pueden reproducir de forma idéntica.
 
-2. Precios y moneda. Los precios base se expresan en pesos chilenos (CLP). Al pagar con PayPal el importe se convierte a dólares estadounidenses (USD) con el tipo de cambio que se muestra en la tienda. El total, con el envío, aparece antes de pagar.
+Cómo comprar. En este sitio no se paga en línea: si una pieza te interesa, escríbenos por WhatsApp, Instagram o correo. Te confirmaremos su disponibilidad, el valor, la forma de pago y el envío antes de cerrar la compra.
 
-3. Medios de pago. Mercado Pago (compras con despacho en Chile) y PayPal (todos los países). No almacenamos datos de tarjetas: el pago se realiza en el sitio de cada proveedor.
+Disponibilidad. Cada pieza puede estar disponible, por encargo o vendida. La disponibilidad publicada puede cambiar sin aviso mientras conversamos contigo.
 
-4. Piezas artesanales. Cada joya se elabora a mano; pueden existir pequeñas diferencias respecto de las fotografías.
+Precios. Cuando se muestran, son referenciales en pesos chilenos (CLP) y se confirman al momento de la compra.
 
-5. Confirmación. Tu pedido queda confirmado cuando el proveedor de pagos aprueba el pago. Te enviaremos un correo con el detalle.
+Piezas artesanales. Al estar hechas a mano, pueden existir pequeñas diferencias respecto de las fotografías.
 
-6. Derechos del consumidor. Esta política no limita los derechos que te otorga la ley de tu país de residencia.`,
+Derechos del consumidor. Estas condiciones no limitan los derechos que te otorga la ley de tu país de residencia.`,
   privacy: `Política de privacidad
 
-Datos que recibimos. Nombre, correo electrónico, teléfono (opcional) y dirección de envío, solo para gestionar tu pedido y contactarte sobre él.
+Este sitio no recopila datos personales mediante formularios ni cuentas de usuario.
 
-Pagos. Los pagos son procesados por Mercado Pago o PayPal. Nosotros no vemos ni guardamos los datos de tu tarjeta.
+Cuando nos escribes por WhatsApp, Instagram o correo, recibimos los datos que tú decides compartir (por ejemplo tu nombre, tu número o tu dirección de envío) y los usamos solo para responderte y gestionar tu compra. No los vendemos ni los compartimos con terceros, salvo los necesarios para despachar tu pedido.
 
-Uso. Usamos tus datos únicamente para preparar, enviar y dar soporte a tu compra. No los vendemos ni los compartimos con terceros, salvo con quienes sean necesarios para cobrar y despachar tu pedido.
+Los servicios de mensajería (WhatsApp, Instagram, tu proveedor de correo) tienen sus propias políticas de privacidad.
 
-Conservación. Conservamos los pedidos el tiempo necesario para cumplir obligaciones contables y de garantía.
-
-Tus derechos. Puedes pedirnos acceder a tus datos, corregirlos o eliminarlos escribiendo al correo de contacto de la tienda.`,
-  shipping: `Envíos y devoluciones
-
-Envíos. Despachamos a Chile, Latinoamérica y el resto del mundo. El costo y el plazo estimado según tu país se muestran antes de pagar. Los plazos son estimados y pueden variar por aduana o por el transportista.
-
-Aduanas e impuestos. En envíos internacionales, los impuestos o derechos de importación del país de destino pueden corresponder al comprador.
-
-Cambios y devoluciones. Si tu joya llega dañada o distinta de lo que compraste, escríbenos dentro de los primeros días de recibirla, con fotos, y buscaremos la mejor solución. Las compras a distancia pueden tener derecho de retracto según la ley de tu país.
-
-Seguimiento. Cuando tu pedido sea despachado te enviaremos el código de seguimiento si el servicio lo incluye.`,
+Puedes pedirnos acceder a tus datos, corregirlos o eliminarlos escribiéndonos al correo de contacto de la tienda.`,
 };
 const policiesEn = {
-  terms: `Terms of sale · Úrsula Alcaíno · Orfebrería
+  terms: `Terms for inquiries and purchases
 
-1. Seller. The jewelry in this shop is made and sold by Úrsula Alcaíno · Orfebrería. You can write to us at the contact email published on the site.
+The jewelry on this site is made by Úrsula Alcaíno · Orfebrería. Most pieces are one of a kind and cannot be reproduced identically.
 
-2. Prices and currency. Base prices are in Chilean pesos (CLP). When paying with PayPal the amount is converted to US dollars (USD) using the exchange rate shown in the shop. The total, including shipping, is shown before you pay.
+How to buy. There is no online payment on this site: if a piece interests you, write to us on WhatsApp, Instagram or by email. We will confirm availability, price, payment method and shipping before closing the purchase.
 
-3. Payment methods. Mercado Pago (orders shipped within Chile) and PayPal (all countries). We never store card data: payment happens on each provider's own site.
+Availability. Each piece may be available, made to order or sold. Published availability may change without notice while we talk with you.
 
-4. Handmade pieces. Every piece is made by hand, so small differences from the photographs may occur.
+Prices. When shown, they are reference prices in Chilean pesos (CLP) and are confirmed at the time of purchase.
 
-5. Confirmation. Your order is confirmed once the payment provider approves the payment. We will email you the details.
+Handmade pieces. Because they are made by hand, small differences from the photographs may occur.
 
-6. Consumer rights. These terms do not limit the rights granted by the law of your country of residence.`,
+Consumer rights. These terms do not limit the rights granted by the law of your country of residence.`,
   privacy: `Privacy policy
 
-Data we receive. Name, email, phone number (optional) and shipping address, only to handle your order and contact you about it.
+This site does not collect personal data through forms or user accounts.
 
-Payments. Payments are processed by Mercado Pago or PayPal. We never see or store your card details.
+When you write to us on WhatsApp, Instagram or by email, we receive the data you choose to share (for example your name, your number or your shipping address) and use it only to answer you and handle your purchase. We do not sell it or share it with third parties, except those needed to ship your order.
 
-Use. We use your data only to prepare, ship and support your purchase. We do not sell it or share it with third parties, except those needed to charge and deliver your order.
+Messaging services (WhatsApp, Instagram, your email provider) have their own privacy policies.
 
-Retention. We keep orders for as long as needed to meet accounting and warranty obligations.
-
-Your rights. You can ask us to access, correct or delete your data by writing to the shop's contact email.`,
-  shipping: `Shipping and returns
-
-Shipping. We ship to Chile, Latin America and the rest of the world. The cost and estimated delivery time for your country are shown before you pay. Delivery times are estimates and may vary because of customs or the carrier.
-
-Customs and taxes. For international shipments, import taxes or duties of the destination country may be the buyer's responsibility.
-
-Exchanges and returns. If your jewelry arrives damaged or different from what you bought, write to us within a few days of receiving it, with photos, and we will find the best solution. Distance purchases may carry a right of withdrawal under the law of your country.
-
-Tracking. When your order ships we will email you the tracking code if the service includes one.`,
+You can ask us to access, correct or delete your data by writing to the shop's contact email.`,
 };
 
 export const initialSettings: Settings = {
-  headline: 'La naturaleza, hecha joya.',
+  headline: 'Joyas creadas desde la naturaleza, la materia y el color.',
   introduction: 'Formas orgánicas, destellos de color y pequeños detalles que hacen la diferencia. Descubre el universo de Úrsula Alcaíno.',
   story: 'Una curva, una textura, un reflejo. El trabajo de Úrsula Alcaíno invita a mirar de cerca: piezas donde las formas de la naturaleza se encuentran con la expresión del metal. Un universo de joyas con carácter propio, para acompañar tu manera de ser.',
   instagram: 'https://www.instagram.com/ursulaalcaino/',
-  collectionTitle: 'Encuentra tu próxima joya.',
+  collectionTitle: 'Piezas',
   en: {
-    headline: 'Nature, made into jewelry.',
+    headline: 'Jewelry created from nature, matter and color.',
     introduction: 'Organic shapes, flashes of color and small details that make the difference. Discover the world of Úrsula Alcaíno.',
     story: 'A curve, a texture, a reflection. Úrsula Alcaíno’s work invites you to look closely: pieces where the shapes of nature meet the expression of metal. A universe of jewelry with a character of its own, to accompany the way you are.',
-    collectionTitle: 'Find your next piece of jewelry.',
+    collectionTitle: 'Pieces',
   },
   contactEmail: '',
   whatsapp: '',
-  usdRate: 950,
-  shipping: {
-    chile: { enabled: true, cost: 4500, eta: '2 a 5 días hábiles', etaEn: '2 to 5 business days' },
-    latam: { enabled: true, cost: 15000, eta: '7 a 15 días hábiles', etaEn: '7 to 15 business days' },
-    world: { enabled: true, cost: 25000, eta: '10 a 25 días hábiles', etaEn: '10 to 25 business days' },
-  },
+  showPrices: false,
+  images: { hero: [], about: null },
   policies: { es: policiesEs, en: policiesEn },
 };
 
@@ -107,9 +81,9 @@ const references: [string, string, Piece['category'], number, string, NonNullabl
 export const initialPieces: Piece[] = references.map(([name, nameEn, category, price, url, crop], index) => ({
   id: `a0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
   slug: slugify(name),
-  name, category, price, kind: 'Producto', status: 'Publicado', availability: 'Disponible', stock: 5, order: index, featured: index < 4,
-  description: 'Una pieza del universo creativo de Úrsula Alcaíno. Fotografía tomada de las referencias compartidas. Nombre y precio de demostración; materiales, medidas y disponibilidad pendientes de confirmar con la autora.',
-  material: 'Detalles por confirmar con la autora',
-  images: [{ url: `/references/${url}.png`, caption: 'Trabajo de Úrsula Alcaíno · fotografía de referencia', crop }],
-  translations: { en: { name: nameEn, description: 'A piece from the creative world of Úrsula Alcaíno. Photograph taken from the shared references. Placeholder name and price; materials, measurements and availability to be confirmed with the artist.', material: 'Details to be confirmed with the artist', caption: 'Work by Úrsula Alcaíno · reference photograph' } },
+  name, category, price, kind: 'Producto', status: 'Publicado', availability: 'Disponible', stock: 1, order: index, featured: index < 4,
+  description: 'Una pieza del universo creativo de Úrsula Alcaíno. Fotografía tomada de las referencias compartidas. Nombre y detalles de ejemplo; materiales y medidas pendientes de confirmar con la autora.',
+  material: 'Por confirmar',
+  images: [{ url: `/references/${url}.png`, caption: 'Trabajo de Úrsula Alcaíno', crop }],
+  translations: { en: { name: nameEn, description: 'A piece from the creative world of Úrsula Alcaíno. Photograph taken from the shared references. Placeholder name and details; materials and measurements to be confirmed with the artist.', material: 'To be confirmed', caption: 'Work by Úrsula Alcaíno' } },
 }));

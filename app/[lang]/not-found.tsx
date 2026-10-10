@@ -1,15 +1,13 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
-import { defaultLocale } from '@/lib/i18n';
-// The locale of a not-found page is not available as a param, so the Spanish text is shown with both links.
+// The language of a not-found page is not available as a param, so both languages are offered.
 export default function NotFound() {
-  const es = getDictionary(defaultLocale), en = getDictionary('en');
-  return <main className="order-page section"><div className="payment-result">
+  const es = getDictionary('es'), en = getDictionary('en');
+  return <main className="notfound">
     <span className="eyebrow">404</span>
     <h1>{es.notFound.title}</h1><p>{es.notFound.text}</p>
-    <Link className="button full" href="/es">{es.notFound.cta} <ArrowRight size={16} /></Link>
+    <Link className="btn solid" href="/es">{es.notFound.cta}</Link>
     <p>{en.notFound.title}</p>
-    <Link className="button outline full" href="/en">{en.notFound.cta} <ArrowRight size={16} /></Link>
-  </div></main>;
+    <Link className="btn" href="/en">{en.notFound.cta}</Link>
+  </main>;
 }

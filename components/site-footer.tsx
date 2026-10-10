@@ -1,23 +1,19 @@
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
 import { fmt, type Dictionary } from '@/lib/dictionaries';
-import { legalPath, type Locale } from '@/lib/i18n';
-import { Brand } from './brand';
+import { legalPath, pagePath, type Locale } from '@/lib/i18n';
 
 export default function SiteFooter({ lang, dict, instagram }: { lang: Locale; dict: Dictionary; instagram: string }) {
-  return <footer>
-    <div className="footer-main">
-      <Brand href={`/${lang}`} label={dict.site.name} />
-      <p>{dict.site.tagline}</p>
-      <div>
-        <Link href={`/${lang}#coleccion`}>{dict.footer.collection}</Link>
-        <Link href={legalPath(lang, 'terms')}>{dict.footer.terms}</Link>
-        <Link href={legalPath(lang, 'shipping')}>{dict.footer.shipping}</Link>
-        <Link href={legalPath(lang, 'privacy')}>{dict.footer.privacy}</Link>
-        <a href={instagram} target="_blank" rel="noreferrer noopener">{dict.footer.instagram} <ArrowUpRight size={13} /></a>
-        <Link href="/admin" rel="nofollow">{dict.footer.workshop} <ArrowUpRight size={13} /></Link>
-      </div>
-    </div>
-    <div className="footer-bottom"><span>{fmt(dict.footer.rights, { year: new Date().getFullYear() })}</span><span>{dict.footer.payments}</span><span>{dict.footer.made} <span className="footer-star">✧</span></span></div>
+  return <footer className="footer">
+    <Link className="wordmark" href={`/${lang}`}>úrsula alcaíno</Link>
+    <nav aria-label="Footer">
+      <Link href={pagePath(lang, 'collection')}>{dict.nav.collection}</Link><span aria-hidden>·</span>
+      <Link href={pagePath(lang, 'about')}>{dict.nav.about}</Link><span aria-hidden>·</span>
+      <Link href={pagePath(lang, 'contact')}>{dict.nav.contact}</Link><span aria-hidden>·</span>
+      <a href={instagram} target="_blank" rel="noreferrer noopener">{dict.footer.instagram}</a><span aria-hidden>·</span>
+      <Link href={legalPath(lang, 'terms')}>{dict.footer.terms}</Link><span aria-hidden>·</span>
+      <Link href={legalPath(lang, 'privacy')}>{dict.footer.privacy}</Link>
+    </nav>
+    <small>{fmt(dict.footer.rights, { year: new Date().getFullYear() })}</small>
+    <small className="tiny"><Link href="/admin" rel="nofollow">{dict.footer.workshop}</Link></small>
   </footer>;
 }

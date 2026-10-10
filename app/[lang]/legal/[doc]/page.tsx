@@ -23,7 +23,7 @@ export default async function Legal({ params }: Props) {
   const dict = getDictionary(lang);
   const settings = getSettings();
   const blocks = settings.policies[lang][doc].split(/\n{2,}/).map(b => b.trim()).filter(Boolean);
-  return <main className="legal-page section">
+  return <main className="doc">
     <p className="eyebrow">{dict.site.name}</p>
     <h1>{dict.legal[doc]}</h1>
     {blocks.length ? blocks.map((block, i) => <p key={i}>{block.split('\n').map((line, j) => <span key={j}>{line}<br /></span>)}</p>) : <p>{dict.legal.empty}</p>}
