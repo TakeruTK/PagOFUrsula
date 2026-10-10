@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, pbkdf2Sync } from 'node:crypto';
 import { once } from 'node:events';
 import path from 'node:path';
@@ -9,13 +10,12 @@ import path from 'node:path';
 const base = 'http://127.0.0.1:3013', live = 'http://127.0.0.1:3015';
 const username = 'test-atelier', password = randomBytes(20).toString('hex'), salt = randomBytes(16).toString('hex');
 const hash = `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex')}`;
-let server, indexed, cookie = '', pieces, output = '', draftId, photoUrl, settings;
+let server, indexed, legacy, cookie = '', pieces, output = '', draftId, photoUrl, settings;
 
 const request = (url, { method = 'GET', body, auth = false, origin = base, headers = {}, ...rest } = {}) => fetch(base + url, { method, headers: { ...(method !== 'GET' ? { Origin: origin } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}), ...(auth ? { Cookie: cookie } : {}), ...headers }, body: body ? JSON.stringify(body) : undefined, redirect: 'manual', ...rest });
 const saveSettings = patch => request('/api/settings', { method: 'PUT', auth: true, body: { ...settings, ...patch } });
 
-function launch(port, env) {
-  const dataDir = mkdtempSync(path.resolve('test-results', 'database-'));
+function launch(port, env, dataDir = mkdtempSync(path.resolve('test-results', 'database-'))) {
   const child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], { cwd: process.cwd(), env: { ...process.env, ADMIN_USERNAME: username, ADMIN_PASSWORD_HASH: hash, DATA_DIR: dataDir, ...env }, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
   child.stdout.on('data', d => output += d); child.stderr.on('data', d => output += d);
   return child;
@@ -36,7 +36,7 @@ before(async () => {
   settings = await (await request('/api/settings', { auth: true })).json();
 });
 after(async () => {
-  for (const child of [server, indexed]) if (child && child.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
+  for (const child of [server, indexed, legacy]) if (child && child.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
 });
 
 // ---- No payment gateway ---------------------------------------------------------------------------------------
@@ -182,6 +182,22 @@ test('the owner can choose the home photos: they become public only when used, a
   assert.equal((await request('/api/settings', { method: 'PUT', auth: true, body: { ...current, images: { hero: [], about: null } } })).status, 200);
   assert.equal((await request(aboutUrl)).status, 404, 'removed from the page, the photo is private again');
   assert.ok(!(await (await request('/es/sobre-mi')).text()).includes(aboutUrl));
+});
+
+// ---- Databases created by the old payment shop ---------------------------------------------------------------------
+test('starting on a database from the payment version drops its orders tables and keeps the catalog', async () => {
+  const dir = mkdtempSync(path.resolve('test-results', 'legacy-'));
+  const old = new DatabaseSync(path.join(dir, 'ursula.sqlite'));
+  old.exec("CREATE TABLE orders (id TEXT PRIMARY KEY, request_key TEXT, content TEXT, created TEXT); CREATE TABLE webhook_events (id TEXT PRIMARY KEY, received TEXT); INSERT INTO orders VALUES ('1','k','{}','now');");
+  old.close();
+  legacy = launch(3016, { SITE_URL: 'http://127.0.0.1:3016' }, dir);
+  await ready('http://127.0.0.1:3016/es');
+  const db = new DatabaseSync(path.join(dir, 'ursula.sqlite'), { readOnly: true });
+  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(r => r.name);
+  assert.ok(!tables.includes('orders') && !tables.includes('webhook_events'), tables.join());
+  assert.ok(tables.includes('pieces') && tables.includes('settings') && tables.includes('photos'));
+  assert.equal(db.prepare('SELECT count(*) c FROM pieces').get().c, 8, 'the starter catalog is created as usual');
+  db.close();
 });
 
 // ---- Account ----------------------------------------------------------------------------------------------------------

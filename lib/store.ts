@@ -18,6 +18,8 @@ export function database() {
     CREATE TABLE IF NOT EXISTS photos (id TEXT PRIMARY KEY, type TEXT NOT NULL, bytes BLOB NOT NULL);
     CREATE TABLE IF NOT EXISTS admin_credentials (id INTEGER PRIMARY KEY CHECK (id=1), username TEXT NOT NULL, hash TEXT NOT NULL);
   `);
+  // Tables of the removed online-payment shop. Databases created by that version still carry them.
+  db.exec('DROP TABLE IF EXISTS orders; DROP TABLE IF EXISTS webhook_events;');
   if (!db.prepare('SELECT id FROM settings WHERE id=1').get()) {
     db.exec('BEGIN IMMEDIATE');
     try {
