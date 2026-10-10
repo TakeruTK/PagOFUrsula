@@ -3,7 +3,7 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { initialPieces, initialSettings } from './seed';
 import { settingsSchema, uniqueSlug, type Piece, type Settings } from './pieces';
-export const dataDir = path.resolve(process.env.DATA_DIR || path.join(process.cwd(), 'data'));
+const dataDir = path.resolve(process.env.DATA_DIR || path.join(process.cwd(), 'data'));
 const globalStore = globalThis as typeof globalThis & { ursulaDb?: DatabaseSync };
 
 export function database() {
@@ -15,10 +15,8 @@ export function database() {
     CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY, content TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, expires INTEGER NOT NULL, version TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS attempts (key TEXT PRIMARY KEY, count INTEGER NOT NULL, expires INTEGER NOT NULL);
-    CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, request_key TEXT UNIQUE NOT NULL, content TEXT NOT NULL, created TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS photos (id TEXT PRIMARY KEY, type TEXT NOT NULL, bytes BLOB NOT NULL);
     CREATE TABLE IF NOT EXISTS admin_credentials (id INTEGER PRIMARY KEY CHECK (id=1), username TEXT NOT NULL, hash TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS webhook_events (id TEXT PRIMARY KEY, received TEXT NOT NULL);
   `);
   if (!db.prepare('SELECT id FROM settings WHERE id=1').get()) {
     db.exec('BEGIN IMMEDIATE');
@@ -50,7 +48,6 @@ function backfillSlugs(db: DatabaseSync) {
 export function getPieces(admin = false): Piece[] {
   return database().prepare('SELECT content FROM pieces').all().map(r => JSON.parse(r.content as string) as Piece).filter(p => admin || p.status === 'Publicado').sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, 'es'));
 }
-export const getPiece = (id: string) => { const row = database().prepare('SELECT content FROM pieces WHERE id=?').get(id); return row ? JSON.parse(row.content as string) as Piece : null; };
 export const getPieceBySlug = (slug: string) => getPieces().find(p => p.slug === slug) || null;
 
 const isPlain = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);

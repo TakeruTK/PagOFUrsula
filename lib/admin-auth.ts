@@ -1,6 +1,7 @@
 // Adapted from PagOf: PBKDF2 credentials, revocable server sessions and same-origin writes.
 import { createHash, pbkdf2Sync, randomBytes, timingSafeEqual } from 'node:crypto';
 import { headers } from 'next/headers';
+import { withinBudget } from './http';
 import { database } from './store';
 const COOKIE='ursula_taller';
 const digest=(s:string)=>createHash('sha256').update(s).digest('hex');
@@ -12,7 +13,7 @@ function credentials(){
 }
 const version=()=>{const c=credentials();return digest(`${c.username}:${c.hash}`);};
 export function configured(){const c=credentials();return !!c.username&&HASH.test(c.hash);}
-export function hashPassword(password:string){const salt=randomBytes(16).toString('hex');return `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password,salt,100000,32,'sha256').toString('hex')}`;}
+function hashPassword(password:string){const salt=randomBytes(16).toString('hex');return `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password,salt,100000,32,'sha256').toString('hex')}`;}
 export function verifyCredentials(username:string,password:string){
   if(!configured())return false;
   const c=credentials();
@@ -49,13 +50,7 @@ export function createSession(){
   return cookie(t,8*3600);
 }
 export function destroySession(request:Request){database().prepare('DELETE FROM sessions WHERE token=?').run(digest(token(request.headers)));return cookie('',0);}
-export function loginAttempt(){
-  // One shared budget is conservative for this single-owner local store. No untrusted proxy IPs.
-  const db=database();const now=Date.now();
-  db.prepare('DELETE FROM attempts WHERE expires<=?').run(now);
-  const row=db.prepare('INSERT INTO attempts VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count').get('login',now+15*60000);
-  return Number(row?.count)<=8;
-}
+export function loginAttempt(){return withinBudget('login',8,15*60000);}
 export async function protect(request:Request){
   if(!await hasAdminSession(request))return Response.json({error:'Inicia sesión para administrar el taller.'},{status:401});
   if(!['GET','HEAD'].includes(request.method)&&!sameOrigin(request))return Response.json({error:'Solicitud no permitida.'},{status:403});

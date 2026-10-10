@@ -2,7 +2,7 @@ import { allowIndexing, isHttps, siteUrl } from './config';
 import { initialSettings } from './seed';
 import { getPieces, getSettings } from './store';
 
-export type Check = { id: string; ok: boolean; label: string; hint: string };
+type Check = { id: string; ok: boolean; label: string; hint: string };
 
 /** What the owner sees in the panel: which launch steps are done and which are missing. */
 export function storeStatus() {

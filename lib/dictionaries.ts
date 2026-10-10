@@ -19,10 +19,10 @@ const es = {
       { title: 'EN PROCESO', text: 'Nuevas ideas y técnicas darán forma a futuras colecciones.' },
     ],
   },
-  collection: { eyebrow: 'PIEZAS ÚNICAS', note: 'Cada pieza es única o de tirada muy limitada. Toca una para conocer su historia.', all: 'Todas', filterLabel: 'Filtrar por categoría', emptyTitle: 'Pronto habrá nuevas piezas.', emptyText: 'Mientras tanto, sigue el proceso en Instagram.', available: 'Disponible', onRequest: 'Por encargo', sold: 'Vendida', view: 'Ver {name}', price: 'Valor referencial {price}' },
+  collection: { eyebrow: 'PIEZAS ÚNICAS', all: 'Todas', filterLabel: 'Filtrar por categoría', emptyTitle: 'Pronto habrá nuevas piezas.', emptyText: 'Mientras tanto, sigue el proceso en Instagram.', available: 'Disponible', onRequest: 'Por encargo', sold: 'Vendida', view: 'Ver {name}', price: 'Valor referencial {price}' },
   instagram: { text: 'Puedes seguir mi proceso, ver nuevas piezas y próximos proyectos en Instagram.', button: 'INSTAGRAM' },
   cta: { title: '¿Te interesa alguna pieza o tienes una idea que conecte con mi estilo?', whatsapp: 'HABLEMOS POR WHATSAPP', email: 'ESCRÍBENOS UN CORREO', note: 'Aquí no se paga en línea: conversamos, confirmamos disponibilidad y coordinamos el pago y el envío.', whatsappMessage: 'Hola Úrsula, me gustaría conversar sobre tus joyas.' },
-  piece: { breadcrumb: 'Migas de pan', details: 'Materiales y técnica', availability: 'Disponibilidad', available: 'Disponible', onRequest: 'Por encargo', sold: 'Vendida', unconfirmed: 'Por confirmar', ask: 'CONSULTAR POR WHATSAPP', askEmail: 'CONSULTAR POR CORREO', askInstagram: 'ESCRIBIR POR INSTAGRAM', unique: 'Pieza única o de tirada muy limitada. Escríbenos para confirmar su disponibilidad, valor y envío.', whatsappMessage: 'Hola Úrsula, me interesa la pieza “{name}” ({url}). ¿Está disponible?', emailSubject: 'Consulta por la pieza {name}', related: 'Otras piezas', photo: 'Ver fotografía {n}', back: 'Volver a las piezas', price: 'Valor referencial' },
+  piece: { breadcrumb: 'Migas de pan', details: 'Materiales y técnica', availability: 'Disponibilidad', unconfirmed: 'Por confirmar', ask: 'CONSULTAR POR WHATSAPP', askEmail: 'CONSULTAR POR CORREO', askInstagram: 'ESCRIBIR POR INSTAGRAM', unique: 'Pieza única o de tirada muy limitada. Escríbenos para confirmar su disponibilidad, valor y envío.', whatsappMessage: 'Hola Úrsula, me interesa la pieza “{name}” ({url}). ¿Está disponible?', emailSubject: 'Consulta por la pieza {name}', related: 'Otras piezas', photo: 'Ver fotografía {n}', price: 'Valor referencial' },
   home: { aboutLink: 'Conoce más sobre mi trabajo', featured: 'Piezas destacadas', all: 'VER TODA LA COLECCIÓN', contactLink: 'IR A CONTACTO' },
   pages: {
     collection: { metaTitle: 'Colección de joyas hechas a mano', metaDescription: 'Aros, anillos y colgantes hechos a mano por Úrsula Alcaíno. Piezas únicas o de tirada muy limitada, inspiradas en la naturaleza, el metal y el color.', intro: 'Aros, anillos y colgantes hechos a mano. Cada pieza es única o de tirada muy limitada.' },
@@ -36,7 +36,7 @@ const es = {
         { title: 'Escríbenos', text: 'Cuéntanos cuál te interesa. Te confirmamos disponibilidad y valor.' },
         { title: 'Coordinamos', text: 'Acordamos juntos la forma de pago y el envío a tu país.' },
       ],
-      channels: 'Canales de contacto', whatsapp: 'WhatsApp', whatsappText: 'La forma más directa de consultar por una pieza.', email: 'Correo', emailText: 'Para consultas más largas o ideas a conversar.', instagram: 'Instagram', instagramText: 'Sigue el proceso y escríbenos por mensaje directo.', open: 'ABRIR', empty: 'Escríbenos por Instagram.',
+      channels: 'Canales de contacto', whatsapp: 'WhatsApp', whatsappText: 'La forma más directa de consultar por una pieza.', email: 'Correo', emailText: 'Para consultas más largas o ideas a conversar.', instagram: 'Instagram', instagramText: 'Sigue el proceso y escríbenos por mensaje directo.', open: 'ABRIR',
     },
   },
   footer: { terms: 'Condiciones', privacy: 'Privacidad', instagram: 'Instagram', workshop: 'Acceso al taller', rights: '© {year} Úrsula Alcaíno · Orfebrería' },
@@ -65,10 +65,10 @@ const en: Dictionary = {
       { title: 'WORK IN PROGRESS', text: 'New ideas and techniques will shape future collections.' },
     ],
   },
-  collection: { eyebrow: 'UNIQUE PIECES', note: 'Every piece is one of a kind or a very limited run. Tap one to discover its story.', all: 'All', filterLabel: 'Filter by category', emptyTitle: 'New pieces are coming soon.', emptyText: 'Meanwhile, follow the process on Instagram.', available: 'Available', onRequest: 'Made to order', sold: 'Sold', view: 'View {name}', price: 'Reference price {price}' },
+  collection: { eyebrow: 'UNIQUE PIECES', all: 'All', filterLabel: 'Filter by category', emptyTitle: 'New pieces are coming soon.', emptyText: 'Meanwhile, follow the process on Instagram.', available: 'Available', onRequest: 'Made to order', sold: 'Sold', view: 'View {name}', price: 'Reference price {price}' },
   instagram: { text: 'You can follow my process, see new pieces and upcoming projects on Instagram.', button: 'INSTAGRAM' },
   cta: { title: 'Interested in a piece, or have an idea that connects with my style?', whatsapp: 'LET’S TALK ON WHATSAPP', email: 'SEND US AN EMAIL', note: 'There is no online payment here: we chat, confirm availability and arrange payment and shipping together.', whatsappMessage: 'Hello Úrsula, I would like to talk about your jewelry.' },
-  piece: { breadcrumb: 'Breadcrumb', details: 'Materials and technique', availability: 'Availability', available: 'Available', onRequest: 'Made to order', sold: 'Sold', unconfirmed: 'To be confirmed', ask: 'ASK ON WHATSAPP', askEmail: 'ASK BY EMAIL', askInstagram: 'MESSAGE ON INSTAGRAM', unique: 'One-of-a-kind or very limited piece. Write to us to confirm availability, price and shipping.', whatsappMessage: 'Hello Úrsula, I am interested in the piece “{name}” ({url}). Is it available?', emailSubject: 'Inquiry about {name}', related: 'More pieces', photo: 'View photo {n}', back: 'Back to the pieces', price: 'Reference price' },
+  piece: { breadcrumb: 'Breadcrumb', details: 'Materials and technique', availability: 'Availability', unconfirmed: 'To be confirmed', ask: 'ASK ON WHATSAPP', askEmail: 'ASK BY EMAIL', askInstagram: 'MESSAGE ON INSTAGRAM', unique: 'One-of-a-kind or very limited piece. Write to us to confirm availability, price and shipping.', whatsappMessage: 'Hello Úrsula, I am interested in the piece “{name}” ({url}). Is it available?', emailSubject: 'Inquiry about {name}', related: 'More pieces', photo: 'View photo {n}', price: 'Reference price' },
   home: { aboutLink: 'Learn more about my work', featured: 'Featured pieces', all: 'SEE THE FULL COLLECTION', contactLink: 'GO TO CONTACT' },
   pages: {
     collection: { metaTitle: 'Handmade jewelry collection', metaDescription: 'Handmade earrings, rings and pendants by Úrsula Alcaíno. One-of-a-kind or very limited pieces inspired by nature, metal and color.', intro: 'Handmade earrings, rings and pendants. Every piece is one of a kind or a very limited run.' },
@@ -82,7 +82,7 @@ const en: Dictionary = {
         { title: 'Write to us', text: 'Tell us which one you like. We confirm availability and price.' },
         { title: 'We arrange it', text: 'Together we agree on payment and shipping to your country.' },
       ],
-      channels: 'Ways to reach us', whatsapp: 'WhatsApp', whatsappText: 'The most direct way to ask about a piece.', email: 'Email', emailText: 'For longer questions or ideas to talk through.', instagram: 'Instagram', instagramText: 'Follow the process and send us a direct message.', open: 'OPEN', empty: 'Write to us on Instagram.',
+      channels: 'Ways to reach us', whatsapp: 'WhatsApp', whatsappText: 'The most direct way to ask about a piece.', email: 'Email', emailText: 'For longer questions or ideas to talk through.', instagram: 'Instagram', instagramText: 'Follow the process and send us a direct message.', open: 'OPEN',
     },
   },
   footer: { terms: 'Terms', privacy: 'Privacy', instagram: 'Instagram', workshop: 'Workshop access', rights: '© {year} Úrsula Alcaíno · Orfebrería' },
@@ -90,6 +90,6 @@ const en: Dictionary = {
   notFound: { title: 'We could not find this page.', text: 'Maybe the piece you were looking for already found its owner. Go back to the pieces.', cta: 'Back to home' },
 };
 
-export const dictionaries: Record<Locale, Dictionary> = { es, en };
+const dictionaries: Record<Locale, Dictionary> = { es, en };
 export const getDictionary = (locale: Locale) => dictionaries[locale];
 export const fmt = (text: string, values: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));

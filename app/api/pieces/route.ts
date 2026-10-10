@@ -3,7 +3,7 @@ import { protect } from '@/lib/admin-auth';
 import { pieceSchema, uniqueSlug } from '@/lib/pieces';
 import { jsonBody,invalid } from '@/lib/http';
 export const dynamic='force-dynamic';
-export async function GET(request:Request){const admin=new URL(request.url).searchParams.has('admin');if(admin){const denied=await protect(request);if(denied)return denied;}return Response.json(getPieces(admin),{headers:{'Cache-Control':'no-store'}});}
+export async function GET(request:Request){const denied=await protect(request);if(denied)return denied;return Response.json(getPieces(true),{headers:{'Cache-Control':'no-store'}});}
 export async function POST(request:Request){return save(request,false);}
 export async function PUT(request:Request){return save(request,true);}
 async function save(request:Request,update:boolean){

@@ -10,7 +10,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 img,svg{display:block;max-width:100%}
 a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
 ::selection{background:#e8dcc5}
-.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 .eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:400}
 
 /* Navigation */

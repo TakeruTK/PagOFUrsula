@@ -81,7 +81,7 @@ const references: [string, string, Piece['category'], number, string, NonNullabl
 export const initialPieces: Piece[] = references.map(([name, nameEn, category, price, url, crop], index) => ({
   id: `a0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
   slug: slugify(name),
-  name, category, price, kind: 'Producto', status: 'Publicado', availability: 'Disponible', stock: 1, order: index, featured: index < 4,
+  name, category, price, status: 'Publicado', availability: 'Disponible', order: index, featured: index < 4,
   description: 'Una pieza del universo creativo de Úrsula Alcaíno. Fotografía tomada de las referencias compartidas. Nombre y detalles de ejemplo; materiales y medidas pendientes de confirmar con la autora.',
   material: 'Por confirmar',
   images: [{ url: `/references/${url}.png`, caption: 'Trabajo de Úrsula Alcaíno', crop }],

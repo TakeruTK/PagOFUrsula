@@ -1,6 +1,6 @@
 export const locales = ['es', 'en'] as const;
 export type Locale = (typeof locales)[number];
-export const defaultLocale: Locale = 'es';
+const defaultLocale: Locale = 'es';
 export const isLocale = (value: string): value is Locale => (locales as readonly string[]).includes(value);
 
 export const htmlLang: Record<Locale, string> = { es: 'es', en: 'en' };
@@ -13,7 +13,7 @@ export const legalDocs: LegalDoc[] = ['terms', 'privacy'];
 // URL segments are translated so that each language has natural, indexable addresses.
 export type PageKey = 'collection' | 'about' | 'contact';
 export const pageKeys: PageKey[] = ['collection', 'about', 'contact'];
-export const segments = {
+const segments = {
   es: { piece: 'joyas', terms: 'terminos', privacy: 'privacidad', collection: 'coleccion', about: 'sobre-mi', contact: 'contacto' },
   en: { piece: 'jewelry', terms: 'terms', privacy: 'privacy', collection: 'collection', about: 'about', contact: 'contact' },
 } as const;

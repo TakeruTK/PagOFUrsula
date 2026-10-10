@@ -12,7 +12,7 @@ type Tab = 'summary' | 'pieces' | 'images' | 'store' | 'policies' | 'security';
 type Target = 'hero' | 'about';
 type Draft = Omit<Piece, 'id' | 'slug'> & { id?: string; slug?: string };
 const emptyEn = { name: '', description: '', material: '', caption: '' };
-const blank = (): Draft => ({ name: '', category: 'Aros', kind: 'Producto', description: '', material: '', price: 0, stock: 1, order: 0, featured: false, status: 'Borrador', availability: 'Disponible', images: [], translations: { en: { ...emptyEn } } });
+const blank = (): Draft => ({ name: '', category: 'Aros', description: '', material: '', price: 0, order: 0, featured: false, status: 'Borrador', availability: 'Disponible', images: [], translations: { en: { ...emptyEn } } });
 const TABS: [Tab, string, React.ReactNode][] = [
   ['summary', 'Resumen', <LayoutDashboard size={19} key="a" />], ['pieces', 'Mis piezas', <Package size={19} key="b" />], ['images', 'Fotos del inicio', <Images size={19} key="f" />], ['store', 'Mi página', <Home size={19} key="c" />],
   ['policies', 'Políticas', <FileText size={19} key="d" />], ['security', 'Seguridad', <KeyRound size={19} key="e" />],
@@ -46,7 +46,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   const options = (method: string, data: unknown) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
   const run = async (task: () => Promise<void>) => { setBusy(true); setError(''); try { await task(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } };
 
-  const refreshPieces = async () => setPieces(await api('/api/pieces?admin'));
+  const refreshPieces = async () => setPieces(await api('/api/pieces'));
   const refreshStatus = async () => setStatus(await api('/api/admin/status'));
   function edit(piece?: Piece, copy = false) {
     const base = piece ? structuredClone(piece) : { ...blank(), order: pieces.length };
@@ -64,7 +64,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
     catch (e) { setError((e as Error).message); } finally { setDraft(p => ({ ...p, images: [...p.images, ...added] })); setUploading(false); }
   }
   const removePiece = () => void run(async () => { if (!deleting) return; await api('/api/pieces?id=' + deleting.id, { method: 'DELETE' }); await Promise.all([refreshPieces(), refreshStatus()]); setDeleting(null); setMessage('Pieza eliminada.'); });
-  const saveSettings = (event: React.FormEvent, note: string) => { event.preventDefault(); void run(async () => { await api('/api/settings', options('PUT', settings)); await refreshStatus(); setMessage(note); }); };
+  const saveSettings = (event: React.FormEvent, note: string) => { event.preventDefault(); void run(async () => { await api('/api/settings', options('PUT', settings)); setSettings(await api('/api/settings')); await refreshStatus(); setMessage(note); }); };
   const logout = () => void run(async () => { await api('/api/admin/logout', { method: 'POST' }); window.location.replace('/admin'); });
   async function selectTab(next: Tab) { setTab(next); setMessage(''); setError(''); if (next === 'summary') try { await refreshStatus(); } catch (e) { setError((e as Error).message); } }
   function movePhoto(index: number, direction: number) { setDraft(p => { const images = [...p.images];[images[index], images[index + direction]] = [images[index + direction], images[index]]; return { ...p, images }; }); }

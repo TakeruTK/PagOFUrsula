@@ -2,7 +2,7 @@ import { z } from 'zod';
 export const categories = ['Aros', 'Anillos', 'Collares', 'Pulseras', 'Otros'] as const;
 export const categoryEn: Record<(typeof categories)[number], string> = { Aros: 'Earrings', Anillos: 'Rings', Collares: 'Necklaces', Pulseras: 'Bracelets', Otros: 'Other' };
 
-export const imageSchema = z.object({
+const imageSchema = z.object({
   url: z.string().regex(/^\/(?:api\/photos\/[a-f0-9-]{36}|references\/(?:silver|ursula|color|nature)\.png)$/),
   caption: z.string().max(200).default(''),
   crop: z.tuple([z.number(), z.number(), z.number().positive(), z.number().positive(), z.number().positive(), z.number().positive()]).optional(),
@@ -13,19 +13,17 @@ const translationSchema = z.object({
   material: z.string().trim().max(150).default(''),
   caption: z.string().trim().max(200).default(''),
 });
-export const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80);
+const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80);
 export const pieceSchema = z.object({
   id: z.string().uuid().optional(),
   slug: slugSchema.optional(),
   name: z.string().trim().min(2).max(100),
   category: z.enum(categories),
-  kind: z.enum(['Producto', 'Trabajo']).default('Producto'),
   description: z.string().trim().min(10).max(4000),
   material: z.string().trim().max(150),
   price: z.number().int().min(0).max(100000000),
   status: z.enum(['Borrador', 'Publicado']),
   availability: z.enum(['Disponible', 'Por encargo', 'Vendido']),
-  stock: z.number().int().min(0).max(10000).default(1),
   order: z.number().int().min(0).max(10000),
   featured: z.boolean(),
   images: z.array(imageSchema).min(1).max(8),
@@ -53,7 +51,6 @@ export function localizedPiece(piece: Piece, locale: 'es' | 'en') {
     description: t?.description || piece.description,
     material: t?.material || piece.material,
     category: locale === 'en' ? categoryEn[piece.category] : piece.category,
-    translated: locale === 'es' || !!(t?.name && t?.description),
   };
 }
 

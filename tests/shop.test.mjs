@@ -29,9 +29,11 @@ before(async () => {
   mkdirSync('test-results', { recursive: true });
   server = launch(3013, { SITE_URL: base });
   indexed = launch(3015, { SITE_URL: 'https://shop.example.com', ALLOW_INDEXING: 'true' });
-  pieces = await (await ready(base + '/api/pieces')).json();
-  await ready(live + '/api/pieces');
-  settings = await (await request('/api/settings')).json();
+  await ready(base + '/es'); await ready(live + '/es');
+  // The data endpoints are private: the suite signs in once to read the starting catalog and settings.
+  const login = await request('/api/admin/login', { method: 'POST', body: { username, password } }); cookie = login.headers.get('set-cookie').split(';')[0];
+  pieces = await (await request('/api/pieces', { auth: true })).json();
+  settings = await (await request('/api/settings', { auth: true })).json();
 });
 after(async () => {
   for (const child of [server, indexed]) if (child && child.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
@@ -48,7 +50,8 @@ test('there is no checkout, payment or order surface any more', async () => {
 
 // ---- Security of private endpoints ---------------------------------------------------------------------------
 test('private endpoints and cross-origin writes are protected', async () => {
-  assert.equal((await request('/api/pieces?admin')).status, 401);
+  assert.equal((await request('/api/pieces')).status, 401);
+  assert.equal((await request('/api/settings')).status, 401);
   assert.equal((await request('/api/admin/status')).status, 401);
   assert.equal((await request('/api/pieces', { method: 'POST', body: pieces[0] })).status, 401);
   assert.equal((await request('/api/admin/login', { method: 'POST', body: { username, password: 'wrong' } })).status, 401);
@@ -57,7 +60,7 @@ test('private endpoints and cross-origin writes are protected', async () => {
 test('admin session uses HTTP-only cookie and supports authenticated edits', async () => {
   const r = await request('/api/admin/login', { method: 'POST', body: { username, password } }); assert.equal(r.status, 200);
   const header = r.headers.get('set-cookie'); assert.match(header, /HttpOnly/); assert.match(header, /SameSite=Strict/); cookie = header.split(';')[0];
-  assert.equal((await request('/api/pieces?admin', { auth: true })).status, 200);
+  assert.equal((await request('/api/pieces', { auth: true })).status, 200);
   assert.equal((await request('/api/settings', { method: 'PUT', auth: true, origin: 'https://untrusted.example', body: {} })).status, 403);
   const status = await (await request('/api/admin/status', { auth: true })).json();
   assert.ok(status.checks.some(c => c.id === 'whatsapp' && !c.ok), 'launch checklist reports the missing WhatsApp number');
@@ -70,20 +73,20 @@ test('photo upload, private draft, publish, edit, slug and delete persist on ser
   assert.equal((await request(photoUrl)).status, 404);
   const draft = { ...pieces[0], id: undefined, slug: undefined, name: 'Pieza de prueba privada', status: 'Borrador', images: [{ url: photoUrl, caption: 'Prueba' }] };
   const created = await request('/api/pieces', { method: 'POST', auth: true, body: draft }); assert.equal(created.status, 200); draftId = (await created.json()).id;
-  assert.ok(!(await (await request('/api/pieces')).json()).some(p => p.id === draftId));
+  assert.ok(!(await (await request('/es/coleccion')).text()).includes('Pieza de prueba privada'), 'drafts are not listed publicly');
   assert.equal((await request('/es/joyas/pieza-de-prueba-privada')).status, 404, 'drafts have no public page');
   assert.equal((await request(photoUrl, { auth: true })).status, 200);
   assert.equal((await request('/api/pieces', { method: 'PUT', auth: true, body: { ...draft, id: draftId, slug: pieces[0].slug, status: 'Publicado' } })).status, 400, 'duplicate slug is refused');
   assert.equal((await request('/api/pieces', { method: 'PUT', auth: true, body: { ...draft, id: draftId, status: 'Publicado', price: 55000, order: 99 } })).status, 200);
   const photo = await request(photoUrl); assert.equal(photo.status, 200); assert.match(photo.headers.get('cache-control'), /immutable/);
-  const visible = (await (await request('/api/pieces')).json()).find(p => p.id === draftId); assert.equal(visible.price, 55000); assert.equal(visible.slug, 'pieza-de-prueba-privada');
+  const visible = (await (await request('/api/pieces', { auth: true })).json()).find(p => p.id === draftId); assert.equal(visible.price, 55000); assert.equal(visible.slug, 'pieza-de-prueba-privada');
   assert.equal((await request('/es/joyas/pieza-de-prueba-privada')).status, 200);
   assert.equal((await request('/api/pieces', { method: 'POST', auth: true, body: { ...draft, id: undefined, slug: undefined, name: 'Sin valor', price: 0, status: 'Borrador' } })).status, 200, 'price is optional');
 });
 test('settings persist, are completed with defaults and reject invalid contact data', async () => {
   assert.ok(settings.en.headline && settings.policies.es.terms && settings.showPrices === false, 'defaults are present');
   assert.equal((await saveSettings({ headline: 'Una portada de prueba.' })).status, 200);
-  assert.equal((await (await request('/api/settings')).json()).headline, 'Una portada de prueba.');
+  assert.equal((await (await request('/api/settings', { auth: true })).json()).headline, 'Una portada de prueba.');
   assert.equal((await saveSettings({ instagram: 'https://untrusted.example' })).status, 400);
   assert.equal((await saveSettings({ whatsapp: 'no-es-un-numero' })).status, 400);
   assert.equal((await saveSettings({ contactEmail: 'sin-arroba' })).status, 400);
@@ -168,7 +171,7 @@ test('the owner can choose the home photos: they become public only when used, a
   const send = async name => { const form = new FormData(); form.append('file', new Blob([readFileSync('public/references/ursula.png')], { type: 'image/png' }), name); return (await (await fetch(base + '/api/photos', { method: 'POST', headers: { Origin: base, Cookie: cookie }, body: form })).json()).url; };
   const heroUrl = await send('hero.png'), aboutUrl = await send('about.png');
   assert.equal((await request(heroUrl)).status, 404, 'an uploaded photo is private until the page uses it');
-  const current = await (await request('/api/settings')).json();
+  const current = await (await request('/api/settings', { auth: true })).json();
   const images = { hero: [{ url: heroUrl, caption: 'Foto de portada' }], about: { url: aboutUrl, caption: 'Taller de Úrsula' } };
   assert.equal((await request('/api/settings', { method: 'PUT', auth: true, body: { ...current, images: { hero: [], about: { url: '/api/photos/00000000-0000-4000-8000-000000000000', caption: '' } } } })).status, 400, 'a photo that does not exist is refused');
   assert.equal((await request('/api/settings', { method: 'PUT', auth: true, body: { ...current, images: { hero: Array(9).fill({ url: heroUrl, caption: '' }), about: null } } })).status, 400, 'at most 8 floating photos');
@@ -187,11 +190,11 @@ test('password change revokes sessions; logout revokes a captured session; login
   assert.equal((await request('/api/admin/password', { method: 'POST', auth: true, body: { current: 'wrong-password', next } })).status, 400);
   assert.equal((await request('/api/admin/password', { method: 'POST', auth: true, body: { current: password, next: 'short' } })).status, 400);
   assert.equal((await request('/api/admin/password', { method: 'POST', auth: true, body: { current: password, next } })).status, 200);
-  assert.equal((await request('/api/pieces?admin', { auth: true })).status, 401, 'old session is revoked');
+  assert.equal((await request('/api/pieces', { auth: true })).status, 401, 'old session is revoked');
   assert.equal((await request('/api/admin/login', { method: 'POST', body: { username, password } })).status, 401, 'old password no longer works');
   const login = await request('/api/admin/login', { method: 'POST', body: { username, password: next } }); assert.equal(login.status, 200); cookie = login.headers.get('set-cookie').split(';')[0];
   assert.equal((await request('/api/admin/logout', { method: 'POST', auth: true })).status, 200);
-  assert.equal((await request('/api/pieces?admin', { auth: true })).status, 401);
+  assert.equal((await request('/api/pieces', { auth: true })).status, 401);
   let last; for (let i = 0; i < 9; i++) last = await request('/api/admin/login', { method: 'POST', body: { username, password: 'wrong' } });
   assert.equal(last.status, 429);
 });

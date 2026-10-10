@@ -1,4 +1,4 @@
 import Link from 'next/link';
-export function Brand({ href = '/', label = 'Úrsula Alcaíno, inicio' }: { href?: string; label?: string }) {
-  return <Link className="wordmark" href={href} aria-label={label}>úrsula alcaíno</Link>;
+export function Brand() {
+  return <Link className="wordmark" href="/" aria-label="Úrsula Alcaíno, inicio">úrsula alcaíno</Link>;
 }
