@@ -45,7 +45,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
 
   const organization = {
     '@context': 'https://schema.org', '@type': 'Organization', '@id': absolute('/#organization'), name: 'Úrsula Alcaíno · Orfebrería', url: absolute('/'),
-    logo: absolute('/favicon.svg'), sameAs: [settings.instagram], ...(settings.contactEmail ? { email: settings.contactEmail } : {}),
+    logo: absolute('/favicon.svg'), sameAs: [settings.instagram, settings.facebook, settings.tiktok].filter(Boolean), ...(settings.contactEmail ? { email: settings.contactEmail } : {}),
     description: dict.meta.homeDescription, founder: { '@type': 'Person', name: 'Úrsula Alcaíno' },
   };
   const website = { '@context': 'https://schema.org', '@type': 'WebSite', '@id': absolute('/#website'), url: absolute('/'), name: 'Úrsula Alcaíno · Orfebrería', inLanguage: locales, publisher: { '@id': absolute('/#organization') } };
@@ -84,7 +84,11 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
 
     <section className="social" data-reveal>
       <p>{dict.instagram.text}</p>
-      <a className="btn" href={settings.instagram} target="_blank" rel="noreferrer noopener">{dict.instagram.button} · @{handle}</a>
+      <div className="cta-row">
+        <a className="btn" href={settings.instagram} target="_blank" rel="noreferrer noopener">{dict.instagram.button} · @{handle}</a>
+        {settings.facebook && <a className="btn" href={settings.facebook} target="_blank" rel="noreferrer noopener">FACEBOOK</a>}
+        {settings.tiktok && <a className="btn" href={settings.tiktok} target="_blank" rel="noreferrer noopener">TIKTOK</a>}
+      </div>
     </section>
 
     <Cta lang={lang} dict={dict} settings={settings} id="contacto" />

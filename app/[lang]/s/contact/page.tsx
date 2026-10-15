@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { mailLink, whatsappLink } from '@/lib/contact';
+import { mailLink, profileHandle, whatsappLink } from '@/lib/contact';
 import { getDictionary } from '@/lib/dictionaries';
 import { isLocale, pagePath } from '@/lib/i18n';
 import { absolute, jsonLd, pageMetadata } from '@/lib/seo';
@@ -22,11 +22,12 @@ export default async function ContactPage({ params }: Props) {
   const dict = getDictionary(lang);
   const c = dict.pages.contact;
   const settings = getSettings();
-  const handle = settings.instagram.split('/').filter(Boolean).pop();
   const channels = [
     settings.whatsapp && { key: 'wa', title: c.whatsapp, text: c.whatsappText, label: settings.whatsapp, href: whatsappLink(settings.whatsapp, dict.cta.whatsappMessage), external: true },
     settings.contactEmail && { key: 'mail', title: c.email, text: c.emailText, label: settings.contactEmail, href: mailLink(settings.contactEmail, dict.meta.homeTitle, ''), external: false },
-    { key: 'ig', title: c.instagram, text: c.instagramText, label: `@${handle}`, href: settings.instagram, external: true },
+    { key: 'ig', title: c.instagram, text: c.instagramText, label: profileHandle(settings.instagram), href: settings.instagram, external: true },
+    settings.facebook && { key: 'fb', title: c.facebook, text: c.facebookText, label: profileHandle(settings.facebook), href: settings.facebook, external: true },
+    settings.tiktok && { key: 'tt', title: c.tiktok, text: c.tiktokText, label: profileHandle(settings.tiktok), href: settings.tiktok, external: true },
   ].filter(Boolean) as { key: string; title: string; text: string; label: string; href: string; external: boolean }[];
   const page = {
     '@context': 'https://schema.org', '@type': 'ContactPage', name: c.metaTitle, url: absolute(pagePath(lang, 'contact')), inLanguage: lang,

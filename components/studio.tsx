@@ -214,7 +214,9 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
           <div className="settings-card"><span className="step-label">03 / CONTACTO</span><p className="field-help">Las ventas se conversan directamente: cada pieza lleva un botón que abre WhatsApp con un mensaje listo.</p>
             <label className="field">WhatsApp (con código de país, ej. +56912345678)<input maxLength={16} value={settings.whatsapp} onChange={e => text('whatsapp', e.target.value)} /></label>
             <label className="field">Correo de contacto<input type="email" maxLength={200} value={settings.contactEmail} onChange={e => text('contactEmail', e.target.value)} /></label>
-            <label className="field">Perfil de Instagram<input type="url" required value={settings.instagram} onChange={e => text('instagram', e.target.value)} /></label></div>
+            <label className="field">Perfil de Instagram<input type="url" required placeholder="https://www.instagram.com/tu_usuario/" value={settings.instagram} onChange={e => text('instagram', e.target.value)} /></label>
+            <label className="field">Perfil de Facebook (opcional)<input type="url" placeholder="https://www.facebook.com/tu.pagina" value={settings.facebook} onChange={e => text('facebook', e.target.value)} /><small>Si lo dejas vacío, no se muestra en la página.</small></label>
+            <label className="field">Perfil de TikTok (opcional)<input type="url" placeholder="https://www.tiktok.com/@tu_usuario" value={settings.tiktok} onChange={e => text('tiktok', e.target.value)} /><small>Copia la dirección de tu perfil. Si lo dejas vacío, no se muestra.</small></label></div>
           <div className="settings-card"><span className="step-label">04 / VALORES</span>
             <label className="check-field"><input type="checkbox" checked={settings.showPrices} onChange={e => text('showPrices', e.target.checked)} /> Mostrar el valor referencial de cada pieza en la página</label>
             <p className="field-help">Apagado: la página invita a consultar el valor. Encendido: se muestra el valor que escribas en cada pieza (si lo dejas en 0, esa pieza no lo muestra).</p></div>

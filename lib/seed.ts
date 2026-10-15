@@ -61,6 +61,8 @@ export const initialSettings: Settings = {
     story: 'A curve, a texture, a reflection. Úrsula Alcaíno’s work invites you to look closely: pieces where the shapes of nature meet the expression of metal. A universe of jewelry with a character of its own, to accompany the way you are.',
     collectionTitle: 'Pieces',
   },
+  facebook: '',
+  tiktok: '',
   contactEmail: '',
   whatsapp: '',
   showPrices: false,

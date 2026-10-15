@@ -90,6 +90,8 @@ test('settings persist, are completed with defaults and reject invalid contact d
   assert.equal((await saveSettings({ instagram: 'https://untrusted.example' })).status, 400);
   assert.equal((await saveSettings({ whatsapp: 'no-es-un-numero' })).status, 400);
   assert.equal((await saveSettings({ contactEmail: 'sin-arroba' })).status, 400);
+  assert.equal((await saveSettings({ facebook: 'https://untrusted.example/ursula' })).status, 400);
+  assert.equal((await saveSettings({ tiktok: 'https://www.tiktok.com/ursula' })).status, 400, 'TikTok profiles start with @');
 });
 
 // ---- Selling by conversation -------------------------------------------------------------------------------------
@@ -117,6 +119,18 @@ test('prices stay hidden unless the owner turns them on, in the page and in stru
   assert.match(html, /\$38\.900/); assert.match(html, /"priceCurrency":"CLP"/); assert.match(html, /"price":"38900"/);
   const grid = await (await request('/es/coleccion')).text(); assert.match(grid, /Valor referencial/);
   assert.equal((await saveSettings({ whatsapp: '+56912345678', contactEmail: 'ursula@example.com', showPrices: false })).status, 200);
+});
+
+test('Facebook and TikTok profiles are optional and appear on the contact page, home and footer when saved', async () => {
+  assert.doesNotMatch(await (await request('/es/contacto')).text(), /facebook\.com|tiktok\.com/);
+  assert.equal((await saveSettings({ whatsapp: '+56912345678', facebook: 'https://www.facebook.com/ursula.alcaino', tiktok: 'https://www.tiktok.com/@ursulaalcaino' })).status, 200);
+  const contact = await (await request('/es/contacto')).text();
+  assert.match(contact, /href="https:\/\/www\.facebook\.com\/ursula\.alcaino"/); assert.match(contact, /href="https:\/\/www\.tiktok\.com\/@ursulaalcaino"/); assert.match(contact, />@ursulaalcaino</);
+  const home = await (await request('/en')).text();
+  assert.match(home, />FACEBOOK</); assert.match(home, />TIKTOK</); assert.match(home, /"sameAs":\["https:\/\/www\.instagram\.com\/ursulaalcaino\/","https:\/\/www\.facebook\.com\/ursula\.alcaino","https:\/\/www\.tiktok\.com\/@ursulaalcaino"\]/);
+  assert.match(home, /<footer[\s\S]*Facebook[\s\S]*TikTok/);
+  assert.equal((await saveSettings({ whatsapp: '+56912345678', contactEmail: 'ursula@example.com', facebook: '', tiktok: '' })).status, 200);
+  assert.doesNotMatch(await (await request('/es/contacto')).text(), /facebook\.com|tiktok\.com/);
 });
 
 // ---- International SEO -----------------------------------------------------------------------------------------------

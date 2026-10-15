@@ -58,6 +58,7 @@ const policySchema = z.object({
   terms: z.string().max(20000),
   privacy: z.string().max(20000),
 });
+const optionalProfile = (pattern: RegExp) => z.union([z.literal(''), z.string().trim().url().regex(pattern)]);
 const textsSchema = z.object({
   headline: z.string().trim().min(5).max(100),
   introduction: z.string().trim().min(10).max(500),
@@ -66,6 +67,8 @@ const textsSchema = z.object({
 });
 export const settingsSchema = textsSchema.extend({
   instagram: z.string().url().regex(/^https:\/\/(?:www\.)?instagram\.com\/[a-zA-Z0-9_.]+\/?$/),
+  facebook: optionalProfile(/^https:\/\/(?:www\.|m\.|web\.)?(?:facebook|fb)\.com\/.+/),
+  tiktok: optionalProfile(/^https:\/\/(?:www\.)?tiktok\.com\/@[a-zA-Z0-9_.]+\/?$/),
   en: textsSchema,
   contactEmail: z.union([z.string().trim().email().max(200), z.literal('')]),
   // Spaces, dashes and parentheses are accepted and removed: "+56 9 1234 5678" is stored as "+56912345678".

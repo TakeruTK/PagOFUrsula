@@ -35,7 +35,7 @@ export default async function LangLayout({ children, params }: { children: React
       <SiteHeader lang={lang} dict={dict} />
       {children}
       <Reveal />
-      <SiteFooter lang={lang} dict={dict} instagram={settings.instagram} />
+      <SiteFooter lang={lang} dict={dict} social={{ instagram: settings.instagram, facebook: settings.facebook, tiktok: settings.tiktok }} />
       {settings.whatsapp && <WhatsAppFloat number={settings.whatsapp} dict={dict} />}
     </body>
   </html>;
