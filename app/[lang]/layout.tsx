@@ -15,7 +15,7 @@ import { getSettings } from '@/lib/store';
 const serif = Cormorant_Garamond({ subsets: ['latin', 'latin-ext'], weight: ['300', '400', '500'], style: ['normal', 'italic'], variable: '--font-serif', display: 'swap' });
 const sans = Outfit({ subsets: ['latin', 'latin-ext'], weight: ['300', '400'], variable: '--font-sans', display: 'swap' });
 
-export const viewport: Viewport = { themeColor: '#0f0e0c', width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = { themeColor: '#0f0e0c', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   robots: robotsMeta(),

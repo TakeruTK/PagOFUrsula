@@ -203,3 +203,59 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 @keyframes wa-ring{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(1.55);opacity:0}}
 @media(max-width:560px){.wa-float{width:56px;height:56px}}
 @media(prefers-reduced-motion:reduce){.wa-float{transition:none}.wa-float::before{animation:none;display:none}}
+
+/* ---- Responsive refinements: notches, short landscape screens, touch, big monitors ---- */
+:root{--nav-h:calc(57px + env(safe-area-inset-top,0px))}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{overflow-x:clip}
+.nav{padding-top:calc(16px + env(safe-area-inset-top,0px));padding-left:max(var(--pad),env(safe-area-inset-left,0px));padding-right:max(var(--pad),env(safe-area-inset-right,0px))}
+.hero{min-height:max(560px,100vh);min-height:max(560px,100svh)}
+.hero-inner{padding-left:max(var(--pad),env(safe-area-inset-left,0px));padding-right:max(var(--pad),env(safe-area-inset-right,0px))}
+.wa-float{right:calc(clamp(16px,3vw,28px) + env(safe-area-inset-right,0px));bottom:calc(clamp(16px,3vw,28px) + env(safe-area-inset-bottom,0px))}
+.footer{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+.thumbs{flex-wrap:wrap}
+.card-text .eyebrow,.card-tag{font-size:11px}
+@media(max-width:760px){
+  .menu-panel{inset:var(--nav-h) 0 auto 0;max-height:calc(100vh - var(--nav-h));max-height:calc(100dvh - var(--nav-h));overflow-y:auto;font-size:13px}
+  .menu-panel a{padding:6px 0}
+  .menu-panel .lang a{padding:8px 10px}
+}
+@media(max-width:420px){
+  :root{--pad:18px}
+  .btn{padding:14px 20px;letter-spacing:.16em;width:100%;max-width:340px}
+  .cta-row{flex-direction:column;align-items:center}
+  .wordmark{font-size:17px;letter-spacing:.16em}
+  .contact-card{padding:26px 22px}
+  .steps li{gap:16px}
+  .piece-info h1{font-size:34px}
+  .page-head h1{font-size:38px}
+}
+@media(max-height:520px) and (orientation:landscape){
+  .hero{min-height:480px}
+  .hero-inner{padding-top:78px;padding-bottom:36px}
+  .hero h1{font-size:clamp(38px,7vw,68px)}
+  .hero-rule{margin:16px auto 12px}
+  .hero-tagline{margin-top:14px;font-size:20px}
+  .hero-scroll{display:none}
+  .page-head{padding-top:96px}
+  .piece{padding-top:84px}
+}
+@media(pointer:coarse){
+  .chips button{padding:12px 6px}
+  .lang a{padding:10px 8px}
+  .nav-links a,.footer nav a{padding:10px 4px}
+  .thumbs button{width:64px;height:64px}
+  .btn{min-height:48px}
+  .menu-button{width:48px;height:48px}
+}
+@media(min-width:1700px){
+  body{font-size:17px}
+  .pieces,.related{max-width:1400px}
+  .pillars,.contact-cards,.about-grid{max-width:1240px}
+  .piece{max-width:1320px}
+  .nav-links{font-size:12px}
+}
+@media(min-width:2200px){
+  body{font-size:18px}
+  .pieces,.related{max-width:1560px}
+}
