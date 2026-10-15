@@ -97,12 +97,14 @@ test('without a WhatsApp number every piece falls back to Instagram; with one it
   const piece = pieces[0];
   let html = await (await request(`/es/joyas/${piece.slug}`)).text();
   assert.doesNotMatch(html, /wa\.me/); assert.match(html, /instagram\.com\/ursulaalcaino/);
+  assert.doesNotMatch(html, /wa-float/, 'no floating button without a number');
   assert.equal((await saveSettings({ whatsapp: '+56 9 1234 5678', contactEmail: 'ursula@example.com' })).status, 200);
   html = await (await request(`/es/joyas/${piece.slug}`)).text();
   const link = html.match(/href="(https:\/\/wa\.me\/[^"]+)"/)[1].replace(/&amp;/g, '&'); const url = new URL(link);
   assert.equal(url.pathname, '/56912345678'); const msg = decodeURIComponent(url.searchParams.get('text'));
   assert.match(msg, new RegExp(piece.name)); assert.match(msg, new RegExp(`/es/joyas/${piece.slug}`));
   assert.match(html, /mailto:ursula@example\.com\?subject=/);
+  assert.match(html, /class="wa-float" href="https:\/\/wa\.me\/56912345678/, 'floating WhatsApp button on every page');
   assert.match(await (await request('/en')).text(), /LET.S TALK ON WHATSAPP/);
   assert.match(await (await request('/es/contacto')).text(), /wa\.me\/56912345678/);
 });
