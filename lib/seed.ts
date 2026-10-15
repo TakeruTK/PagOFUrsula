@@ -82,8 +82,8 @@ export const initialPieces: Piece[] = references.map(([name, nameEn, category, p
   id: `a0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
   slug: slugify(name),
   name, category, price, status: 'Publicado', availability: 'Disponible', order: index, featured: index < 4,
-  description: 'Una pieza del universo creativo de Úrsula Alcaíno. Fotografía tomada de las referencias compartidas. Nombre y detalles de ejemplo; materiales y medidas pendientes de confirmar con la autora.',
+  description: 'Una pieza del universo de Úrsula Alcaíno, hecha a mano: formas que nacen de la naturaleza, metal y destellos de color. Escríbenos para conocer su disponibilidad y su historia.',
   material: 'Por confirmar',
   images: [{ url: `/references/${url}.png`, caption: 'Trabajo de Úrsula Alcaíno', crop }],
-  translations: { en: { name: nameEn, description: 'A piece from the creative world of Úrsula Alcaíno. Photograph taken from the shared references. Placeholder name and details; materials and measurements to be confirmed with the artist.', material: 'To be confirmed', caption: 'Work by Úrsula Alcaíno' } },
+  translations: { en: { name: nameEn, description: 'A handmade piece from Úrsula Alcaíno’s world: shapes born from nature, metal and flashes of color. Write to us to learn about its availability and story.', material: 'To be confirmed', caption: 'Work by Úrsula Alcaíno' } },
 }));

@@ -14,7 +14,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isLocale(lang) || !valid(doc)) return {};
   const dict = getDictionary(lang);
   const paths = Object.fromEntries(locales.map(l => [l, legalPath(l, doc)])) as Record<Locale, string>;
-  return { title: dict.legal[doc], alternates: alternates(lang, paths), openGraph: { ...openGraphBase(lang), title: dict.legal[doc], url: absolute(paths[lang]) } };
+  const description = `${dict.legal[doc]} · ${dict.site.name}`;
+  return { title: dict.legal[doc], description, alternates: alternates(lang, paths), openGraph: { ...openGraphBase(lang), title: dict.legal[doc], description, url: absolute(paths[lang]) } };
 }
 
 export default async function Legal({ params }: Props) {
