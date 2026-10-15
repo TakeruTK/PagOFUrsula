@@ -195,9 +195,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 .reveal-ready [data-reveal].in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.hero-inner>*,.scene canvas{opacity:1!important;transform:none!important;animation:none!important}.tilt-body{transform:none!important}.reveal-ready [data-reveal]{opacity:1;transform:none}}
 
-/* Floating WhatsApp button */
-.wa-float{position:fixed;right:clamp(14px,3vw,28px);bottom:clamp(14px,3vw,28px);z-index:45;display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 20px 0 16px;border-radius:99px;background:var(--dark);color:#f4f1ea;border:1px solid rgba(168,137,90,.55);font-size:11px;letter-spacing:.2em;text-transform:uppercase;box-shadow:0 10px 30px -10px rgba(0,0,0,.45);transition:background .25s,border-color .25s,transform .25s}
-.wa-float:hover{background:var(--gold);border-color:var(--gold);transform:translateY(-2px)}
-.wa-float svg{flex:none}
-@media(max-width:560px){.wa-float{width:52px;padding:0;justify-content:center}.wa-float span{display:none}}
-@media(prefers-reduced-motion:reduce){.wa-float{transition:none}}
+/* Floating WhatsApp button: the familiar green circle with the white logo */
+.wa-float{position:fixed;right:clamp(16px,3vw,28px);bottom:clamp(16px,3vw,28px);z-index:45;display:grid;place-items:center;width:60px;height:60px;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.28);transition:background .2s,transform .2s}
+.wa-float::before{content:"";position:absolute;inset:0;border-radius:50%;background:#25d366;opacity:.55;z-index:-1;animation:wa-ring 2.6s ease-out infinite}
+.wa-float:hover{background:#1ebe5d;transform:scale(1.07)}
+.wa-float:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px #25d366}
+@keyframes wa-ring{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(1.55);opacity:0}}
+@media(max-width:560px){.wa-float{width:56px;height:56px}}
+@media(prefers-reduced-motion:reduce){.wa-float{transition:none}.wa-float::before{animation:none;display:none}}
