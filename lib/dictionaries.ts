@@ -21,7 +21,7 @@ const es = {
   },
   collection: { eyebrow: 'PIEZAS ÚNICAS', all: 'Todas', filterLabel: 'Filtrar por categoría', emptyTitle: 'Pronto habrá nuevas piezas.', emptyText: 'Mientras tanto, sigue el proceso en Instagram.', available: 'Disponible', onRequest: 'Por encargo', sold: 'Vendida', view: 'Ver {name}', price: 'Valor referencial {price}' },
   instagram: { text: 'Puedes seguir mi proceso, ver nuevas piezas y próximos proyectos en Instagram.', button: 'INSTAGRAM' },
-  cta: { float: 'Escríbenos por WhatsApp', title: '¿Te interesa alguna pieza o tienes una idea que conecte con mi estilo?', whatsapp: 'HABLEMOS POR WHATSAPP', email: 'ESCRÍBENOS UN CORREO', note: 'Aquí no se paga en línea: conversamos, confirmamos disponibilidad y coordinamos el pago y el envío.', whatsappMessage: 'Hola Úrsula, me gustaría conversar sobre tus joyas.' },
+  cta: { title: '¿Te interesa alguna pieza o tienes una idea que conecte con mi estilo?', whatsapp: 'HABLEMOS POR WHATSAPP', email: 'ESCRÍBENOS UN CORREO', note: 'Aquí no se paga en línea: conversamos, confirmamos disponibilidad y coordinamos el pago y el envío.', whatsappMessage: 'Hola Úrsula, me gustaría conversar sobre tus joyas.' },
   piece: { breadcrumb: 'Migas de pan', details: 'Materiales y técnica', availability: 'Disponibilidad', unconfirmed: 'Por confirmar', ask: 'CONSULTAR POR WHATSAPP', askEmail: 'CONSULTAR POR CORREO', askInstagram: 'ESCRIBIR POR INSTAGRAM', unique: 'Pieza única o de tirada muy limitada. Escríbenos para confirmar su disponibilidad, valor y envío.', whatsappMessage: 'Hola Úrsula, me interesa la pieza “{name}” ({url}). ¿Está disponible?', emailSubject: 'Consulta por la pieza {name}', related: 'Otras piezas', photo: 'Ver fotografía {n}', price: 'Valor referencial' },
   home: { aboutLink: 'Conoce más sobre mi trabajo', featured: 'Piezas destacadas', all: 'VER TODA LA COLECCIÓN', contactLink: 'IR A CONTACTO' },
   pages: {
@@ -39,7 +39,7 @@ const es = {
       channels: 'Canales de contacto', whatsapp: 'WhatsApp', whatsappText: 'La forma más directa de consultar por una pieza.', email: 'Correo', emailText: 'Para consultas más largas o ideas a conversar.', instagram: 'Instagram', instagramText: 'Sigue el proceso y escríbenos por mensaje directo.', facebook: 'Facebook', facebookText: 'Novedades y mensajes desde nuestra página.', tiktok: 'TikTok', tiktokText: 'Mira el proceso de las piezas en video.', open: 'ABRIR',
     },
   },
-  footer: { terms: 'Condiciones', privacy: 'Privacidad', instagram: 'Instagram', workshop: 'Acceso al taller', rights: '© {year} Úrsula Alcaíno · Orfebrería' },
+  footer: { email: 'Correo electrónico', follow: 'Síguenos y escríbenos', terms: 'Condiciones', privacy: 'Privacidad', workshop: 'Acceso al taller', rights: '© {year} Úrsula Alcaíno · Orfebrería' },
   legal: { terms: 'Condiciones de compra', privacy: 'Política de privacidad', empty: 'Este texto se publicará próximamente.', contact: 'Contacto' },
   notFound: { title: 'No encontramos esta página.', text: 'Quizás la joya que buscas ya encontró su dueña. Vuelve a las piezas.', cta: 'Volver al inicio' },
 };
@@ -67,7 +67,7 @@ const en: Dictionary = {
   },
   collection: { eyebrow: 'UNIQUE PIECES', all: 'All', filterLabel: 'Filter by category', emptyTitle: 'New pieces are coming soon.', emptyText: 'Meanwhile, follow the process on Instagram.', available: 'Available', onRequest: 'Made to order', sold: 'Sold', view: 'View {name}', price: 'Reference price {price}' },
   instagram: { text: 'You can follow my process, see new pieces and upcoming projects on Instagram.', button: 'INSTAGRAM' },
-  cta: { float: 'Message us on WhatsApp', title: 'Interested in a piece, or have an idea that connects with my style?', whatsapp: 'LET’S TALK ON WHATSAPP', email: 'SEND US AN EMAIL', note: 'There is no online payment here: we chat, confirm availability and arrange payment and shipping together.', whatsappMessage: 'Hello Úrsula, I would like to talk about your jewelry.' },
+  cta: { title: 'Interested in a piece, or have an idea that connects with my style?', whatsapp: 'LET’S TALK ON WHATSAPP', email: 'SEND US AN EMAIL', note: 'There is no online payment here: we chat, confirm availability and arrange payment and shipping together.', whatsappMessage: 'Hello Úrsula, I would like to talk about your jewelry.' },
   piece: { breadcrumb: 'Breadcrumb', details: 'Materials and technique', availability: 'Availability', unconfirmed: 'To be confirmed', ask: 'ASK ON WHATSAPP', askEmail: 'ASK BY EMAIL', askInstagram: 'MESSAGE ON INSTAGRAM', unique: 'One-of-a-kind or very limited piece. Write to us to confirm availability, price and shipping.', whatsappMessage: 'Hello Úrsula, I am interested in the piece “{name}” ({url}). Is it available?', emailSubject: 'Inquiry about {name}', related: 'More pieces', photo: 'View photo {n}', price: 'Reference price' },
   home: { aboutLink: 'Learn more about my work', featured: 'Featured pieces', all: 'SEE THE FULL COLLECTION', contactLink: 'GO TO CONTACT' },
   pages: {
@@ -85,7 +85,7 @@ const en: Dictionary = {
       channels: 'Ways to reach us', whatsapp: 'WhatsApp', whatsappText: 'The most direct way to ask about a piece.', email: 'Email', emailText: 'For longer questions or ideas to talk through.', instagram: 'Instagram', instagramText: 'Follow the process and send us a direct message.', facebook: 'Facebook', facebookText: 'News and messages from our page.', tiktok: 'TikTok', tiktokText: 'Watch the making of the pieces on video.', open: 'OPEN',
     },
   },
-  footer: { terms: 'Terms', privacy: 'Privacy', instagram: 'Instagram', workshop: 'Workshop access', rights: '© {year} Úrsula Alcaíno · Orfebrería' },
+  footer: { email: 'Email', follow: 'Follow and write to us', terms: 'Terms', privacy: 'Privacy', workshop: 'Workshop access', rights: '© {year} Úrsula Alcaíno · Orfebrería' },
   legal: { terms: 'Terms of sale', privacy: 'Privacy policy', empty: 'This text will be published soon.', contact: 'Contact' },
   notFound: { title: 'We could not find this page.', text: 'Maybe the piece you were looking for already found its owner. Go back to the pieces.', cta: 'Back to home' },
 };

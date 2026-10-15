@@ -5,7 +5,6 @@ import '../site.css';
 import Reveal from '@/components/reveal';
 import SiteFooter from '@/components/site-footer';
 import SiteHeader from '@/components/site-header';
-import WhatsAppFloat from '@/components/whatsapp-float';
 import { siteUrl } from '@/lib/config';
 import { getDictionary } from '@/lib/dictionaries';
 import { htmlLang, isLocale, locales } from '@/lib/i18n';
@@ -35,8 +34,7 @@ export default async function LangLayout({ children, params }: { children: React
       <SiteHeader lang={lang} dict={dict} />
       {children}
       <Reveal />
-      <SiteFooter lang={lang} dict={dict} social={{ instagram: settings.instagram, facebook: settings.facebook, tiktok: settings.tiktok }} />
-      {settings.whatsapp && <WhatsAppFloat number={settings.whatsapp} dict={dict} />}
+      <SiteFooter lang={lang} dict={dict} social={{ instagram: settings.instagram, facebook: settings.facebook, tiktok: settings.tiktok, whatsapp: settings.whatsapp, email: settings.contactEmail }} />
     </body>
   </html>;
 }
