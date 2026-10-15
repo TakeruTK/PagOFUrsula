@@ -60,7 +60,7 @@ export default function Hero3D({ photos, onReady }: { photos: Photo[]; onReady?:
     renderer.domElement.setAttribute('aria-hidden', 'true');
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x0f0e0c, 12, 26);
+    scene.fog = new THREE.Fog(0x272b00, 12, 26);
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 60);
     camera.position.set(0, 0, 11);
     const world = new THREE.Group();
