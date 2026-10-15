@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { allowIndexing, isHttps } from '@/lib/config';
 import { isLocale, negotiateLocale } from '@/lib/i18n';
 
-const UNLOCALIZED = /^\/(?:api|admin|_next|references|favicon\.svg$|robots\.txt$|sitemap\.xml$)|\.[a-z0-9]+$/i;
+const UNLOCALIZED = /^\/(?:api|admin|_next|references|robots\.txt$|sitemap\.xml$)|\.[a-z0-9]+$/i;
 
 // Runs on every request, with the environment of the running server:
 // 1) visitors without a language in the address are sent to the best one for them,
@@ -24,4 +24,4 @@ export function proxy(request: NextRequest) {
   if (isHttps()) response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   return response;
 }
-export const config = { matcher: ['/((?!_next/static|_next/image|favicon\.svg|references/).*)'] };
+export const config = { matcher: ['/((?!_next/static|_next/image|brand/|references/|favicon\.png|apple-touch-icon\.png).*)'] };

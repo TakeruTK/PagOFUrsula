@@ -258,3 +258,13 @@ html,body{overflow-x:clip}
 .social-icons a:hover{background:var(--ink);color:var(--bg);transform:translateY(-2px)}
 .social-icons svg{width:20px;height:20px}
 @media(prefers-reduced-motion:reduce){.social-icons a{transition:none}}
+
+/* Logo */
+.brand-lockup{display:inline-flex;align-items:center;gap:12px}
+.brand-lockup img{height:34px;width:auto;display:block}
+.hero-logo{margin:0;line-height:0;font-size:0}
+.hero-logo img{display:block;width:clamp(250px,44vw,520px);height:auto;margin:0 auto}
+.footer-logo{display:block;line-height:0}
+.footer-logo img{display:block;width:clamp(170px,22vw,230px);height:auto;margin:0 auto}
+@media(max-width:420px){.brand-lockup{gap:9px}.brand-lockup img{height:30px}}
+@media(max-height:520px) and (orientation:landscape){.hero-logo img{width:clamp(200px,30vw,340px)}}

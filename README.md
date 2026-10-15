@@ -1,4 +1,4 @@
-# Úrsula Alcaíno · Orfebrería
+# Ursula Alcaino · Orfebrería
 
 Sitio de joyería de autora, en español e inglés, con un diseño editorial inspirado en casaorfebre.cl: portada oscura a pantalla completa, texto sobre el trabajo, piezas únicas con su material y botones de contacto. **No hay pasarela de pago**: las ventas se conversan por WhatsApp, Instagram o correo. Incluye SEO internacional y un taller privado para administrar piezas y textos.
 

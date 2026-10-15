@@ -3,7 +3,7 @@ import { slugify, type Piece, type Settings } from './pieces';
 const policiesEs = {
   terms: `Condiciones de las consultas y compras
 
-Las joyas de este sitio son creadas por Úrsula Alcaíno · Orfebrería. La mayoría son piezas únicas y no se pueden reproducir de forma idéntica.
+Las joyas de este sitio son creadas por Ursula Alcaino · Orfebrería. La mayoría son piezas únicas y no se pueden reproducir de forma idéntica.
 
 Cómo comprar. En este sitio no se paga en línea: si una pieza te interesa, escríbenos por WhatsApp, Instagram o correo. Te confirmaremos su disponibilidad, el valor, la forma de pago y el envío antes de cerrar la compra.
 
@@ -27,7 +27,7 @@ Puedes pedirnos acceder a tus datos, corregirlos o eliminarlos escribiéndonos a
 const policiesEn = {
   terms: `Terms for inquiries and purchases
 
-The jewelry on this site is made by Úrsula Alcaíno · Orfebrería. Most pieces are one of a kind and cannot be reproduced identically.
+The jewelry on this site is made by Ursula Alcaino · Orfebrería. Most pieces are one of a kind and cannot be reproduced identically.
 
 How to buy. There is no online payment on this site: if a piece interests you, write to us on WhatsApp, Instagram or by email. We will confirm availability, price, payment method and shipping before closing the purchase.
 
@@ -51,14 +51,14 @@ You can ask us to access, correct or delete your data by writing to the shop's c
 
 export const initialSettings: Settings = {
   headline: 'Joyas creadas desde la naturaleza, la materia y el color.',
-  introduction: 'Formas orgánicas, destellos de color y pequeños detalles que hacen la diferencia. Descubre el universo de Úrsula Alcaíno.',
-  story: 'Una curva, una textura, un reflejo. El trabajo de Úrsula Alcaíno invita a mirar de cerca: piezas donde las formas de la naturaleza se encuentran con la expresión del metal. Un universo de joyas con carácter propio, para acompañar tu manera de ser.',
+  introduction: 'Formas orgánicas, destellos de color y pequeños detalles que hacen la diferencia. Descubre el universo de Ursula Alcaino.',
+  story: 'Una curva, una textura, un reflejo. El trabajo de Ursula Alcaino invita a mirar de cerca: piezas donde las formas de la naturaleza se encuentran con la expresión del metal. Un universo de joyas con carácter propio, para acompañar tu manera de ser.',
   instagram: 'https://www.instagram.com/ursulaalcaino/',
   collectionTitle: 'Piezas',
   en: {
     headline: 'Jewelry created from nature, matter and color.',
-    introduction: 'Organic shapes, flashes of color and small details that make the difference. Discover the world of Úrsula Alcaíno.',
-    story: 'A curve, a texture, a reflection. Úrsula Alcaíno’s work invites you to look closely: pieces where the shapes of nature meet the expression of metal. A universe of jewelry with a character of its own, to accompany the way you are.',
+    introduction: 'Organic shapes, flashes of color and small details that make the difference. Discover the world of Ursula Alcaino.',
+    story: 'A curve, a texture, a reflection. Ursula Alcaino’s work invites you to look closely: pieces where the shapes of nature meet the expression of metal. A universe of jewelry with a character of its own, to accompany the way you are.',
     collectionTitle: 'Pieces',
   },
   facebook: '',
@@ -84,8 +84,8 @@ export const initialPieces: Piece[] = references.map(([name, nameEn, category, p
   id: `a0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
   slug: slugify(name),
   name, category, price, status: 'Publicado', availability: 'Disponible', order: index, featured: index < 4,
-  description: 'Una pieza del universo de Úrsula Alcaíno, hecha a mano: formas que nacen de la naturaleza, metal y destellos de color. Escríbenos para conocer su disponibilidad y su historia.',
+  description: 'Una pieza del universo de Ursula Alcaino, hecha a mano: formas que nacen de la naturaleza, metal y destellos de color. Escríbenos para conocer su disponibilidad y su historia.',
   material: 'Por confirmar',
-  images: [{ url: `/references/${url}.png`, caption: 'Trabajo de Úrsula Alcaíno', crop }],
-  translations: { en: { name: nameEn, description: 'A handmade piece from Úrsula Alcaíno’s world: shapes born from nature, metal and flashes of color. Write to us to learn about its availability and story.', material: 'To be confirmed', caption: 'Work by Úrsula Alcaíno' } },
+  images: [{ url: `/references/${url}.png`, caption: 'Trabajo de Ursula Alcaino', crop }],
+  translations: { en: { name: nameEn, description: 'A handmade piece from Ursula Alcaino’s world: shapes born from nature, metal and flashes of color. Write to us to learn about its availability and story.', material: 'To be confirmed', caption: 'Work by Ursula Alcaino' } },
 }));

@@ -56,7 +56,7 @@ export default async function PiecePage({ params }: Props) {
   const availability = card.availability === 'Disponible' ? 'https://schema.org/InStock' : card.availability === 'Por encargo' ? 'https://schema.org/PreOrder' : 'https://schema.org/SoldOut';
   const product = {
     '@context': 'https://schema.org', '@type': 'Product', '@id': `${url}#product`, name: card.name, description: card.description, sku: card.id, url,
-    ...(upload.length ? { image: upload } : {}), brand: { '@type': 'Brand', name: 'Úrsula Alcaíno' }, category: card.category,
+    ...(upload.length ? { image: upload } : {}), brand: { '@type': 'Brand', name: 'Ursula Alcaino' }, category: card.category,
     ...(card.material && !['Por confirmar', 'To be confirmed'].includes(card.material) ? { material: card.material } : {}),
     // Without online checkout a price is only published when the owner chooses to show it.
     ...(hasPrice ? { offers: { '@type': 'Offer', url, priceCurrency: 'CLP', price: String(card.price), availability, seller: { '@id': absolute('/#organization') } } } : {}),

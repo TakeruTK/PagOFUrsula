@@ -5,7 +5,7 @@ import SocialIcons, { type Social } from './social-icons';
 
 export default function SiteFooter({ lang, dict, social }: { lang: Locale; dict: Dictionary; social: Social }) {
   return <footer className="footer">
-    <Link className="wordmark" href={`/${lang}`}>úrsula alcaíno</Link>
+    <Link className="footer-logo" href={`/${lang}`}><img src="/brand/logo-dark.png" alt={dict.site.name} width="1000" height="572" loading="lazy" /></Link>
     <SocialIcons social={social} dict={dict} />
     <nav aria-label="Footer">
       <Link href={pagePath(lang, 'collection')}>{dict.nav.collection}</Link>

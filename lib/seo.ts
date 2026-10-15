@@ -12,7 +12,7 @@ export function alternates(locale: Locale, paths: Record<Locale, string>): Metad
   };
 }
 export const robotsMeta = (): Metadata['robots'] => (allowIndexing() ? { index: true, follow: true, 'max-image-preview': 'large' } : { index: false, follow: false });
-export const openGraphBase = (locale: Locale) => ({ siteName: 'Úrsula Alcaíno · Orfebrería', locale: ogLocale[locale], alternateLocale: locales.filter(l => l !== locale).map(l => ogLocale[l]), type: 'website' as const });
+export const openGraphBase = (locale: Locale) => ({ siteName: 'Ursula Alcaino · Orfebrería', locale: ogLocale[locale], alternateLocale: locales.filter(l => l !== locale).map(l => ogLocale[l]), type: 'website' as const });
 
 /** Serialises JSON-LD safely for a <script> tag. */
 export const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, '\u003c');

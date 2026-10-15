@@ -44,11 +44,11 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   const handle = settings.instagram.split('/').filter(Boolean).pop();
 
   const organization = {
-    '@context': 'https://schema.org', '@type': 'Organization', '@id': absolute('/#organization'), name: 'Úrsula Alcaíno · Orfebrería', url: absolute('/'),
-    logo: absolute('/favicon.svg'), sameAs: [settings.instagram, settings.facebook, settings.tiktok].filter(Boolean), ...(settings.contactEmail ? { email: settings.contactEmail } : {}),
-    description: dict.meta.homeDescription, founder: { '@type': 'Person', name: 'Úrsula Alcaíno' },
+    '@context': 'https://schema.org', '@type': 'Organization', '@id': absolute('/#organization'), name: 'Ursula Alcaino · Orfebrería', url: absolute('/'),
+    logo: absolute('/brand/logo-dark.png'), sameAs: [settings.instagram, settings.facebook, settings.tiktok].filter(Boolean), ...(settings.contactEmail ? { email: settings.contactEmail } : {}),
+    description: dict.meta.homeDescription, founder: { '@type': 'Person', name: 'Ursula Alcaino' },
   };
-  const website = { '@context': 'https://schema.org', '@type': 'WebSite', '@id': absolute('/#website'), url: absolute('/'), name: 'Úrsula Alcaíno · Orfebrería', inLanguage: locales, publisher: { '@id': absolute('/#organization') } };
+  const website = { '@context': 'https://schema.org', '@type': 'WebSite', '@id': absolute('/#website'), url: absolute('/'), name: 'Ursula Alcaino · Orfebrería', inLanguage: locales, publisher: { '@id': absolute('/#organization') } };
 
   return <main>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd([organization, website]) }} />
@@ -56,7 +56,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
       <div className="hero-photo" aria-hidden><Photo photo={cover} alt="" eager /></div>
       <HeroScene photos={sceneImages} />
       <div className="hero-inner">
-        <h1>úrsula alcaíno</h1>
+        <h1 className="hero-logo"><img src="/brand/logo-light.png" alt={dict.site.name} width="1000" height="572" fetchPriority="high" /></h1>
         <span className="hero-rule" />
         <span className="eyebrow">{dict.hero.kicker}</span>
         <p className="hero-tagline">{text.headline}</p>

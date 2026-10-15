@@ -183,3 +183,11 @@ h1,h2,h3{font-family:var(--serif);font-weight:400}
   .stats-grid>div:last-child{border-bottom:0}
   .settings-card{padding:20px}
 }
+
+/* Logo */
+.brand-lockup{display:inline-flex;align-items:center;gap:12px}
+.brand-lockup img{height:36px;width:auto;display:block}
+.studio-sidebar .brand-lockup{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px}
+.studio-sidebar .brand-lockup img{height:48px}
+.login-page .brand-lockup img{height:52px}
+@media(max-width:900px){.studio-sidebar .brand-lockup{margin:0 6px 0 0}.studio-sidebar .brand-lockup img{height:30px}}

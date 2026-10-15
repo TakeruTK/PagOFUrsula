@@ -109,7 +109,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
 
   return <div className="studio-shell">
     <aside className="studio-sidebar">
-      <Brand /><p className="tiny-label">TU ESPACIO DE CREACIÓN</p>
+      <Brand tone="light" /><p className="tiny-label">TU ESPACIO DE CREACIÓN</p>
       <nav>{TABS.map(([id, label, icon]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => selectTab(id)}>{icon} {label}{id === 'pieces' && <span>{pieces.length}</span>}{id === 'summary' && pending > 0 && <span>{pending}</span>}</button>)}</nav>
       <div className="sidebar-bottom">
         <Link href="/" target="_blank">Ver mi página <ArrowUpRight size={16} /></Link>
@@ -117,7 +117,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
       </div>
     </aside>
     <main className="studio-main">
-      <header className="studio-top"><span><LayoutDashboard size={17} /> EL TALLER DE ÚRSULA</span><Link href="/" target="_blank">Visitar página <ArrowUpRight size={15} /></Link></header>
+      <header className="studio-top"><span><LayoutDashboard size={17} /> EL TALLER DE URSULA</span><Link href="/" target="_blank">Visitar página <ArrowUpRight size={15} /></Link></header>
       <div className="studio-content">
         <div className="section-heading"><div><p className="eyebrow">TODO COMIENZA CON UNA IDEA</p><h1>{TITLES[tab]}</h1></div>{tab === 'pieces' && <button className="button" onClick={() => edit()}><Plus size={17} /> Nueva pieza</button>}</div>
         {message && <p className="success-box" role="status"><Check size={17} />{message}</p>}

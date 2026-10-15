@@ -18,8 +18,8 @@ export const viewport: Viewport = { themeColor: '#bec092', width: 'device-width'
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   robots: robotsMeta(),
-  icons: { icon: '/favicon.svg' },
-  applicationName: 'Úrsula Alcaíno · Orfebrería',
+  icons: { icon: '/favicon.png', apple: '/apple-touch-icon.png' },
+  applicationName: 'Ursula Alcaino · Orfebrería',
 };
 export const generateStaticParams = () => locales.map(lang => ({ lang }));
 export const dynamic = 'force-dynamic';
