@@ -27,6 +27,7 @@ export default async function AboutPage({ params }: Props) {
   const dict = getDictionary(lang);
   const settings = getSettings();
   const text = lang === 'en' ? settings.en : settings;
+  const paragraphs = text.story.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
   const cards = toCards(getPieces(), lang);
   const photo = settings.images.about || (cards[1] || cards[0] || toCards(initialPieces, lang)[1]).images[0];
   const about = { '@context': 'https://schema.org', '@type': 'AboutPage', name: dict.pages.about.metaTitle, url: absolute(pagePath(lang, 'about')), inLanguage: lang, about: { '@id': absolute('/#organization') } };
@@ -39,8 +40,7 @@ export default async function AboutPage({ params }: Props) {
     <section className="about-grid">
       <Tilt max={7}><div className="about-photo"><Photo photo={photo} alt={settings.images.about?.caption || dict.pages.about.imageAlt} eager /></div></Tilt>
       <div className="about-text" data-reveal>
-        <p className="lead">{text.introduction}</p>
-        {text.story.split(/\n{2,}/).map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+        {paragraphs.map((paragraph, i) => <p key={i} className={i === 0 ? 'lead' : undefined}>{paragraph}</p>)}
         <Link className="btn" href={pagePath(lang, 'collection')}>{dict.pages.about.more}</Link>
       </div>
     </section>
