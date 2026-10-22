@@ -135,6 +135,20 @@ test('Facebook and TikTok profiles are optional and appear on the contact page, 
   assert.doesNotMatch(await (await request('/es/contacto')).text(), /facebook\.com|tiktok\.com/);
 });
 
+test('a piece can carry its size, in both languages, and the page shows it only when written', async () => {
+  const base0 = { ...pieces[0], id: undefined, slug: undefined, name: 'Aros con medidas', status: 'Publicado', price: 0 };
+  const plain = await request('/api/pieces', { method: 'POST', auth: true, body: base0 }); assert.equal(plain.status, 200);
+  const id = (await plain.json()).id;
+  let html = await (await request('/es/joyas/aros-con-medidas')).text();
+  assert.doesNotMatch(html, /<dt>Tamaño<\/dt>/, 'no size row until one is written');
+  assert.equal((await request('/api/pieces', { method: 'PUT', auth: true, body: { ...base0, id, size: '2,5 cm de diámetro', translations: { en: { name: 'Earrings with sizes', description: 'Earrings with a written size.', material: '', size: '2.5 cm diameter', caption: '' } } } })).status, 200);
+  html = await (await request('/es/joyas/aros-con-medidas')).text();
+  assert.match(html, /<dt>Tamaño<\/dt><dd>2,5 cm de diámetro<\/dd>/); assert.match(html, /"size":"2,5 cm de diámetro"/);
+  assert.match(await (await request('/en/jewelry/aros-con-medidas')).text(), /<dt>Size<\/dt><dd>2\.5 cm diameter<\/dd>/);
+  assert.equal((await request('/api/pieces', { method: 'PUT', auth: true, body: { ...base0, id, size: 'x'.repeat(151) } })).status, 400, 'size is limited to 150 characters');
+  assert.equal((await request(`/api/pieces?id=${id}`, { method: 'DELETE', auth: true })).status, 200);
+});
+
 // ---- International SEO -----------------------------------------------------------------------------------------------
 test('language negotiation and localized pages with hreflang, canonical and structured data', async () => {
   const en = await request('/', { headers: { 'Accept-Language': 'en-US,en;q=0.9' } }); assert.equal(en.status, 307); assert.match(en.headers.get('location'), /\/en$/);

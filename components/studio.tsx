@@ -11,8 +11,8 @@ import Photo from './photo';
 type Tab = 'summary' | 'pieces' | 'images' | 'store' | 'policies' | 'security';
 type Target = 'hero' | 'about';
 type Draft = Omit<Piece, 'id' | 'slug'> & { id?: string; slug?: string };
-const emptyEn = { name: '', description: '', material: '', caption: '' };
-const blank = (): Draft => ({ name: '', category: 'Aros', description: '', material: '', price: 0, order: 0, featured: false, status: 'Borrador', availability: 'Disponible', images: [], translations: { en: { ...emptyEn } } });
+const emptyEn = { name: '', description: '', material: '', size: '', caption: '' };
+const blank = (): Draft => ({ name: '', category: 'Aros', description: '', material: '', size: '', price: 0, order: 0, featured: false, status: 'Borrador', availability: 'Disponible', images: [], translations: { en: { ...emptyEn } } });
 const TABS: [Tab, string, React.ReactNode][] = [
   ['summary', 'Resumen', <LayoutDashboard size={19} key="a" />], ['pieces', 'Mis piezas', <Package size={19} key="b" />], ['images', 'Fotos del inicio', <Images size={19} key="f" />], ['store', 'Mi página', <Home size={19} key="c" />],
   ['policies', 'Políticas', <FileText size={19} key="d" />], ['security', 'Seguridad', <KeyRound size={19} key="e" />],
@@ -260,6 +260,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
               <label className="field">Piece name<input maxLength={100} value={en.name} onChange={e => setEn({ name: e.target.value })} /></label>
               <label className="field">Story and description<textarea rows={5} maxLength={4000} value={en.description} onChange={e => setEn({ description: e.target.value })} /></label>
               <label className="field">Materials and technique<input maxLength={150} value={en.material} onChange={e => setEn({ material: e.target.value })} /></label>
+              <label className="field">Size<input maxLength={150} placeholder="e.g. 2.5 cm diameter" value={en.size} onChange={e => setEn({ size: e.target.value })} /></label>
               <label className="field">Cover photo description<input maxLength={200} value={en.caption} onChange={e => setEn({ caption: e.target.value })} /></label>
             </> : <>
               <label className="field">Nombre de la pieza<input required minLength={2} maxLength={100} value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} /></label>
@@ -270,6 +271,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
               </div>
               <label className="field">Historia y descripción<textarea required minLength={10} maxLength={4000} rows={4} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })} /></label>
               <label className="field">Materiales y técnica (ej. Plata 950, bronce, oro 18 k)<input maxLength={150} value={draft.material} onChange={e => setDraft({ ...draft, material: e.target.value })} /></label>
+              <label className="field">Tamaño y medidas<input maxLength={150} placeholder="Ej. 2,5 cm de diámetro · 3 mm de grosor" value={draft.size || ''} onChange={e => setDraft({ ...draft, size: e.target.value })} /><small>Aparece en la ficha de la pieza. Puedes escribir el diámetro, el largo, el peso o lo que ayude a elegir.</small></label>
               <label className="field">Valor referencial (CLP, opcional)<input type="number" min={0} max={100000000} step={1} value={draft.price || ''} onChange={e => setDraft({ ...draft, price: Number(e.target.value) })} /><small>Solo se muestra si activas “Mostrar el valor” en Mi página.</small></label>
               <div className="form-row">
                 <label className="field">Visibilidad<select value={draft.status} onChange={e => setDraft({ ...draft, status: e.target.value as Piece['status'] })}><option>Borrador</option><option>Publicado</option></select></label>

@@ -86,6 +86,7 @@ export const initialPieces: Piece[] = references.map(([name, nameEn, category, p
   name, category, price, status: 'Publicado', availability: 'Disponible', order: index, featured: index < 4,
   description: 'Una pieza del universo de Ursula Alcaino, hecha a mano: formas que nacen de la naturaleza, metal y destellos de color. Escríbenos para conocer su disponibilidad y su historia.',
   material: 'Por confirmar',
+  size: '',
   images: [{ url: `/references/${url}.png`, caption: 'Trabajo de Ursula Alcaino', crop }],
-  translations: { en: { name: nameEn, description: 'A handmade piece from Ursula Alcaino’s world: shapes born from nature, metal and flashes of color. Write to us to learn about its availability and story.', material: 'To be confirmed', caption: 'Work by Ursula Alcaino' } },
+  translations: { en: { name: nameEn, description: 'A handmade piece from Ursula Alcaino’s world: shapes born from nature, metal and flashes of color. Write to us to learn about its availability and story.', material: 'To be confirmed', size: '', caption: 'Work by Ursula Alcaino' } },
 }));

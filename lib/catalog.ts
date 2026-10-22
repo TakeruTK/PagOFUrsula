@@ -4,14 +4,14 @@ import { intlLocale, type Locale } from './i18n';
 
 /** A piece prepared for display in one language. */
 export type Card = {
-  id: string; slug: string; name: string; description: string; material: string; category: string; categoryKey: Piece['category'];
+  id: string; slug: string; name: string; description: string; material: string; size: string; category: string; categoryKey: Piece['category'];
   price: number; featured: boolean; order: number; availability: Piece['availability']; images: Photo[];
 };
 export function toCards(pieces: Piece[], locale: Locale): Card[] {
   return pieces.map(piece => {
     const text = localizedPiece(piece, locale);
     return {
-      id: piece.id, slug: piece.slug, name: text.name, description: text.description, material: text.material, category: text.category, categoryKey: piece.category,
+      id: piece.id, slug: piece.slug, name: text.name, description: text.description, material: text.material, size: text.size, category: text.category, categoryKey: piece.category,
       price: piece.price, featured: piece.featured, order: piece.order, availability: piece.availability,
       images: piece.images.map((image, i) => ({ ...image, caption: (locale === 'en' && i === 0 && piece.translations?.en?.caption) || image.caption })),
     };

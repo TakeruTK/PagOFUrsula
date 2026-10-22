@@ -11,6 +11,7 @@ const translationSchema = z.object({
   name: z.string().trim().max(100).default(''),
   description: z.string().trim().max(4000).default(''),
   material: z.string().trim().max(150).default(''),
+  size: z.string().trim().max(150).default(''),
   caption: z.string().trim().max(200).default(''),
 });
 const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80);
@@ -21,6 +22,7 @@ export const pieceSchema = z.object({
   category: z.enum(categories),
   description: z.string().trim().min(10).max(4000),
   material: z.string().trim().max(150),
+  size: z.string().trim().max(150).default(''),
   price: z.number().int().min(0).max(100000000),
   status: z.enum(['Borrador', 'Publicado']),
   availability: z.enum(['Disponible', 'Por encargo', 'Vendido']),
@@ -43,13 +45,14 @@ export function uniqueSlug(base: string, taken: Iterable<string>) {
   return slug;
 }
 
-/** Name, description and material for a language, falling back to Spanish when no translation exists. */
+/** Name, description, material and size for a language, falling back to Spanish when no translation exists. */
 export function localizedPiece(piece: Piece, locale: 'es' | 'en') {
   const t = locale === 'en' ? piece.translations?.en : undefined;
   return {
     name: t?.name || piece.name,
     description: t?.description || piece.description,
     material: t?.material || piece.material,
+    size: t?.size || piece.size,
     category: locale === 'en' ? categoryEn[piece.category] : piece.category,
   };
 }

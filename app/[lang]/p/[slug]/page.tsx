@@ -58,6 +58,7 @@ export default async function PiecePage({ params }: Props) {
     '@context': 'https://schema.org', '@type': 'Product', '@id': `${url}#product`, name: card.name, description: card.description, sku: card.id, url,
     ...(upload.length ? { image: upload } : {}), brand: { '@type': 'Brand', name: 'Ursula Alcaino' }, category: card.category,
     ...(card.material && !['Por confirmar', 'To be confirmed'].includes(card.material) ? { material: card.material } : {}),
+    ...(card.size ? { size: card.size } : {}),
     // Without online checkout a price is only published when the owner chooses to show it.
     ...(hasPrice ? { offers: { '@type': 'Offer', url, priceCurrency: 'CLP', price: String(card.price), availability, seller: { '@id': absolute('/#organization') } } } : {}),
   };
@@ -78,6 +79,7 @@ export default async function PiecePage({ params }: Props) {
         <p className="desc">{card.description}</p>
         <dl className="facts">
           <div><dt>{dict.piece.details}</dt><dd>{card.material || dict.piece.unconfirmed}</dd></div>
+          {card.size && <div><dt>{dict.piece.size}</dt><dd>{card.size}</dd></div>}
           <div><dt>{dict.piece.availability}</dt><dd>{stateLabel}</dd></div>
           {hasPrice && <div><dt>{dict.piece.price}</dt><dd>{formatPrice(card.price, lang)}</dd></div>}
         </dl>
