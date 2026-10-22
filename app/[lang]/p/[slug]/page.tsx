@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Gallery from '@/components/gallery';
 import PieceCard from '@/components/piece-card';
-import { availabilityLabel, formatPrice, toCards } from '@/lib/catalog';
+import { availabilityLabel, formatPrice, toCard, toCards } from '@/lib/catalog';
 import { mailLink, whatsappLink } from '@/lib/contact';
 import { fmt, getDictionary } from '@/lib/dictionaries';
 import { homePath, isLocale, locales, pagePath, piecePath, type Locale } from '@/lib/i18n';
-import { absolute, alternates, jsonLd, openGraphBase } from '@/lib/seo';
+import { isTranslated } from '@/lib/pieces';
+import { absolute, alternates, breadcrumbs as breadcrumbLd, jsonLd, openGraphBase } from '@/lib/seo';
 import { getPieceBySlug, getPieces, getSettings } from '@/lib/store';
 
 export const dynamic = 'force-dynamic';
@@ -16,8 +17,8 @@ type Props = { params: Promise<{ lang: string; slug: string }> };
 function load(lang: Locale, slug: string) {
   const piece = getPieceBySlug(slug);
   if (!piece) return null;
-  const cards = toCards(getPieces(), lang);
-  return { cards, card: cards.find(c => c.id === piece.id)! };
+  // The page itself is served in any language; only pieces written in that language are suggested next to it.
+  return { piece, cards: toCards(getPieces(), lang), card: toCard(piece, lang) };
 }
 const clean = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text);
 
@@ -26,16 +27,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isLocale(lang)) return {};
   const data = load(lang, slug);
   if (!data) return { title: getDictionary(lang).meta.notFoundTitle, robots: { index: false } };
-  const { card } = data;
-  const paths = Object.fromEntries(locales.map(l => [l, piecePath(l, slug)])) as Record<Locale, string>;
+  const { card, piece } = data;
+  const paths = Object.fromEntries(locales.filter(l => isTranslated(piece, l)).map(l => [l, piecePath(l, slug)])) as Partial<Record<Locale, string>>;
   const title = `${card.name} · ${card.category}`;
   const description = clean(card.description, 158);
   const upload = card.images.find(i => i.url.startsWith('/api/photos/'));
   // Pieces that still use reference screenshots fall back to the generated brand image.
   const image = upload ? absolute(upload.url) : absolute(`/${lang}/opengraph-image`);
   return {
-    title, description, alternates: alternates(lang, paths),
-    openGraph: { ...openGraphBase(lang), title, description, url: absolute(paths[lang]), images: [{ url: image, alt: card.name }] },
+    title, description, alternates: alternates(lang, paths, piecePath(lang, slug)),
+    // A language without its own text for this piece would only repeat the Spanish page: keep it out of the index.
+    ...(isTranslated(piece, lang) ? {} : { robots: { index: false, follow: true } }),
+    openGraph: { ...openGraphBase(lang), title, description, url: absolute(piecePath(lang, slug)), images: [{ url: image, alt: card.name }] },
     twitter: { card: 'summary_large_image', title, description, images: [image] },
   };
 }
@@ -62,14 +65,11 @@ export default async function PiecePage({ params }: Props) {
     // Without online checkout a price is only published when the owner chooses to show it.
     ...(hasPrice ? { offers: { '@type': 'Offer', url, priceCurrency: 'CLP', price: String(card.price), availability, seller: { '@id': absolute('/#organization') } } } : {}),
   };
-  const breadcrumbs = {
-    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-    itemListElement: [{ '@type': 'ListItem', position: 1, name: dict.nav.home, item: absolute(homePath(lang)) }, { '@type': 'ListItem', position: 2, name: card.name, item: url }],
-  };
+  const trail = breadcrumbLd([{ name: dict.nav.home, path: homePath(lang) }, { name: dict.nav.collection, path: pagePath(lang, 'collection') }, { name: card.name, path: piecePath(lang, slug) }]);
   const stateLabel = availabilityLabel(card, dict);
 
   return <main className="piece">
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd([product, breadcrumbs]) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd([product, trail]) }} />
     <nav className="crumbs" aria-label={dict.piece.breadcrumb}><Link href={homePath(lang)}>{dict.nav.home}</Link><span>/</span><Link href={pagePath(lang, 'collection')}>{dict.nav.collection}</Link><span>/</span><span aria-current="page">{card.name}</span></nav>
     <article className="piece-grid">
       <Gallery images={card.images} name={card.name} label={dict.piece.photo} />

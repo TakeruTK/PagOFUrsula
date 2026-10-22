@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpRight, Check, CheckCircle2, Circle, Copy, FileText, Home, ImagePlus, Images, KeyRound, LayoutDashboard, LogOut, Package, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
 import { categories, slugify, type Photo as PhotoType, type Piece, type Settings } from '@/lib/pieces';
+import { locales, nativeName, type Locale } from '@/lib/i18n';
 import type { StoreStatus } from '@/lib/status';
 import { Brand } from './brand';
 import Modal from './modal';
@@ -11,8 +12,13 @@ import Photo from './photo';
 type Tab = 'summary' | 'pieces' | 'images' | 'store' | 'policies' | 'security';
 type Target = 'hero' | 'about';
 type Draft = Omit<Piece, 'id' | 'slug'> & { id?: string; slug?: string };
-const emptyEn = { name: '', description: '', material: '', size: '', caption: '' };
-const blank = (): Draft => ({ name: '', category: 'Aros', description: '', material: '', size: '', price: 0, order: 0, featured: false, status: 'Borrador', availability: 'Disponible', images: [], translations: { en: { ...emptyEn } } });
+const emptyT = { name: '', description: '', material: '', size: '', caption: '' };
+// Spanish is written in the main fields; every other language gets its own tab and its own page texts.
+type Other = Exclude<Locale, 'es'>;
+const others = locales.filter((l): l is Other => l !== 'es');
+const freshTranslations = () => Object.fromEntries(others.map(l => [l, { ...emptyT }])) as Draft['translations'];
+const filled = (d: Draft, l: Locale) => l === 'es' || !!(d.translations?.[l]?.name && d.translations?.[l]?.description);
+const blank = (): Draft => ({ name: '', category: 'Aros', description: '', material: '', size: '', price: 0, order: 0, featured: false, status: 'Borrador', availability: 'Disponible', images: [], translations: freshTranslations() });
 const TABS: [Tab, string, React.ReactNode][] = [
   ['summary', 'Resumen', <LayoutDashboard size={19} key="a" />], ['pieces', 'Mis piezas', <Package size={19} key="b" />], ['images', 'Fotos del inicio', <Images size={19} key="f" />], ['store', 'Mi página', <Home size={19} key="c" />],
   ['policies', 'Políticas', <FileText size={19} key="d" />], ['security', 'Seguridad', <KeyRound size={19} key="e" />],
@@ -28,10 +34,10 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   const [visibility, setVisibility] = useState('Todas');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Draft>(blank());
-  const [english, setEnglish] = useState(false);
+  const [editLang, setEditLang] = useState<Locale>('es');
   const [deleting, setDeleting] = useState<Piece | null>(null);
   const [picker, setPicker] = useState<Target | null>(null);
-  const [policyLang, setPolicyLang] = useState<'es' | 'en'>('es');
+  const [policyLang, setPolicyLang] = useState<Locale>('es');
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -51,8 +57,8 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   function edit(piece?: Piece, copy = false) {
     const base = piece ? structuredClone(piece) : { ...blank(), order: pieces.length };
     if (copy && piece) { delete (base as Draft).id; delete (base as Draft).slug; base.name = `${piece.name} (copia)`; base.status = 'Borrador'; base.featured = false; }
-    base.translations = { en: { ...emptyEn, ...(base.translations?.en || {}) } };
-    setDraft(base); setEnglish(false); setError(''); setMessage(''); setEditing(true);
+    base.translations = Object.fromEntries(others.map(l => [l, { ...emptyT, ...(base.translations?.[l] || {}) }])) as Draft['translations'];
+    setDraft(base); setEditLang('es'); setError(''); setMessage(''); setEditing(true);
   }
   const savePiece = (event: React.FormEvent) => { event.preventDefault(); void run(async () => { await api('/api/pieces', options(draft.id ? 'PUT' : 'POST', draft)); await Promise.all([refreshPieces(), refreshStatus()]); setEditing(false); setMessage('Pieza guardada. Los cambios ya están en tu página.'); }); };
   async function upload(files: FileList | null) {
@@ -102,8 +108,9 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
 
   const shownPieces = pieces.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()) && (visibility === 'Todas' || p.status === visibility));
   const text = <K extends keyof Settings>(key: K, value: Settings[K]) => setSettings(s => ({ ...s, [key]: value }));
-  const en = draft.translations?.en || emptyEn;
-  const setEn = (patch: Partial<typeof emptyEn>) => setDraft(d => ({ ...d, translations: { en: { ...emptyEn, ...(d.translations?.en || {}), ...patch } } }));
+  const tr = editLang === 'es' ? emptyT : (draft.translations?.[editLang] || emptyT);
+  const setTr = (patch: Partial<typeof emptyT>) => setDraft(d => (editLang === 'es' ? d : { ...d, translations: { ...d.translations, [editLang]: { ...emptyT, ...(d.translations?.[editLang] || {}), ...patch } } }));
+  const setLangText = (l: Other, patch: Partial<Settings['en']>) => setSettings(s => ({ ...s, [l]: { ...s[l], ...patch } }));
   const pending = status.checks.filter(c => !c.ok).length;
   const count = (s: string) => pieces.filter(p => p.status === s).length.toString().padStart(2, '0');
 
@@ -206,18 +213,18 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
             <label className="field">Introducción (destacada en “Sobre mi trabajo”)<textarea required minLength={10} maxLength={500} rows={3} value={settings.introduction} onChange={e => text('introduction', e.target.value)} /></label>
             <label className="field">Sobre mi trabajo<textarea required minLength={10} maxLength={2000} rows={6} value={settings.story} onChange={e => text('story', e.target.value)} /><small>Separa los párrafos con una línea en blanco.</small></label>
             <label className="field">Título de la sección de piezas<input required maxLength={100} minLength={3} value={settings.collectionTitle} onChange={e => text('collectionTitle', e.target.value)} /></label></div>
-          <div className="settings-card"><span className="step-label">02 / PORTADA Y TEXTOS · ENGLISH</span><p className="field-help">Lo que verán las visitas que usan la página en inglés (/en).</p>
-            <label className="field">Cover phrase<input required minLength={5} maxLength={100} value={settings.en.headline} onChange={e => text('en', { ...settings.en, headline: e.target.value })} /></label>
-            <label className="field">Introduction<textarea required minLength={10} maxLength={500} rows={3} value={settings.en.introduction} onChange={e => text('en', { ...settings.en, introduction: e.target.value })} /></label>
-            <label className="field">About my work<textarea required minLength={10} maxLength={2000} rows={6} value={settings.en.story} onChange={e => text('en', { ...settings.en, story: e.target.value })} /></label>
-            <label className="field">Pieces section title<input required maxLength={100} minLength={3} value={settings.en.collectionTitle} onChange={e => text('en', { ...settings.en, collectionTitle: e.target.value })} /></label></div>
-          <div className="settings-card"><span className="step-label">03 / CONTACTO</span><p className="field-help">Las ventas se conversan directamente: cada pieza lleva un botón que abre WhatsApp con un mensaje listo.</p>
+          {others.map((l, n) => <div className="settings-card" key={l}><span className="step-label">0{2 + n} / PORTADA Y TEXTOS · {nativeName[l].toUpperCase()}</span><p className="field-help">Lo que verán las visitas que usan la página en {nativeName[l]} (/{l}). Si algo queda en español, los buscadores no mostrarán esa página en {nativeName[l]}.</p>
+            <label className="field">Frase de la portada<input required minLength={5} maxLength={100} lang={l} value={settings[l].headline} onChange={e => setLangText(l, { headline: e.target.value })} /></label>
+            <label className="field">Introducción<textarea required minLength={10} maxLength={500} rows={3} lang={l} value={settings[l].introduction} onChange={e => setLangText(l, { introduction: e.target.value })} /></label>
+            <label className="field">Mi historia<textarea required minLength={10} maxLength={2000} rows={6} lang={l} value={settings[l].story} onChange={e => setLangText(l, { story: e.target.value })} /><small>Separa los párrafos con una línea en blanco.</small></label>
+            <label className="field">Título de la sección de piezas<input required maxLength={100} minLength={3} lang={l} value={settings[l].collectionTitle} onChange={e => setLangText(l, { collectionTitle: e.target.value })} /></label></div>)}
+          <div className="settings-card"><span className="step-label">0{2 + others.length} / CONTACTO</span><p className="field-help">Las ventas se conversan directamente: cada pieza lleva un botón que abre WhatsApp con un mensaje listo.</p>
             <label className="field">WhatsApp (con código de país, ej. +56912345678)<input maxLength={16} value={settings.whatsapp} onChange={e => text('whatsapp', e.target.value)} /></label>
             <label className="field">Correo de contacto<input type="email" maxLength={200} value={settings.contactEmail} onChange={e => text('contactEmail', e.target.value)} /></label>
             <label className="field">Perfil de Instagram<input type="url" required placeholder="https://www.instagram.com/tu_usuario/" value={settings.instagram} onChange={e => text('instagram', e.target.value)} /></label>
             <label className="field">Perfil de Facebook (opcional)<input type="url" placeholder="https://www.facebook.com/tu.pagina" value={settings.facebook} onChange={e => text('facebook', e.target.value)} /><small>Si lo dejas vacío, no se muestra en la página.</small></label>
             <label className="field">Perfil de TikTok (opcional)<input type="url" placeholder="https://www.tiktok.com/@tu_usuario" value={settings.tiktok} onChange={e => text('tiktok', e.target.value)} /><small>Copia la dirección de tu perfil. Si lo dejas vacío, no se muestra.</small></label></div>
-          <div className="settings-card"><span className="step-label">04 / VALORES</span>
+          <div className="settings-card"><span className="step-label">0{3 + others.length} / VALORES</span>
             <label className="check-field"><input type="checkbox" checked={settings.showPrices} onChange={e => text('showPrices', e.target.checked)} /> Mostrar el valor referencial de cada pieza en la página</label>
             <p className="field-help">Apagado: la página invita a consultar el valor. Encendido: se muestra el valor que escribas en cada pieza (si lo dejas en 0, esa pieza no lo muestra).</p></div>
           <button className="button" disabled={busy}><Save size={17} />{busy ? 'Guardando…' : 'Guardar cambios'}</button>
@@ -225,7 +232,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
 
         {tab === 'policies' && <form className="settings-form" onSubmit={e => saveSettings(e, 'Los textos legales quedaron actualizados.')}>
           <p className="admin-explainer">Estos textos son borradores generales. Revísalos antes de abrir la página: se publican en /terminos y /privacidad. Separa los párrafos con una línea en blanco.</p>
-          <div className="studio-filters"><select aria-label="Idioma de los textos" value={policyLang} onChange={e => setPolicyLang(e.target.value as 'es' | 'en')}><option value="es">Español</option><option value="en">English</option></select></div>
+          <div className="studio-filters"><select aria-label="Idioma de los textos" value={policyLang} onChange={e => setPolicyLang(e.target.value as Locale)}>{locales.map(l => <option key={l} value={l}>{nativeName[l]}</option>)}</select></div>
           {(['terms', 'privacy'] as const).map(doc => <div className="settings-card" key={doc}><label className="field">{doc === 'terms' ? 'Condiciones de consulta y compra' : 'Política de privacidad'}<textarea rows={12} maxLength={20000} value={settings.policies[policyLang][doc]} onChange={e => setSettings(s => ({ ...s, policies: { ...s.policies, [policyLang]: { ...s.policies[policyLang], [doc]: e.target.value } } }))} /></label></div>)}
           <button className="button" disabled={busy}><Save size={17} />{busy ? 'Guardando…' : 'Guardar textos'}</button>
         </form>}
@@ -254,14 +261,14 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
               <input aria-label={`Descripción de foto ${index + 1}`} placeholder="Descripción de la foto (sirve para buscadores y accesibilidad)" maxLength={200} value={image.caption} onChange={e => setDraft(p => ({ ...p, images: p.images.map((im, i) => (i === index ? { ...im, caption: e.target.value } : im)) }))} /></div>)}</div>
           </div>
           <div>
-            <div className="lang-tabs" role="tablist"><button type="button" role="tab" aria-selected={!english} className={!english ? 'active' : ''} onClick={() => setEnglish(false)}>Español</button><button type="button" role="tab" aria-selected={english} className={english ? 'active' : ''} onClick={() => setEnglish(true)}>English</button></div>
-            {english ? <>
-              <p className="field-help">Recomendado: así la pieza se encuentra en Google en inglés. Si lo dejas vacío se muestra el texto en español.</p>
-              <label className="field">Piece name<input maxLength={100} value={en.name} onChange={e => setEn({ name: e.target.value })} /></label>
-              <label className="field">Story and description<textarea rows={5} maxLength={4000} value={en.description} onChange={e => setEn({ description: e.target.value })} /></label>
-              <label className="field">Materials and technique<input maxLength={150} value={en.material} onChange={e => setEn({ material: e.target.value })} /></label>
-              <label className="field">Size<input maxLength={150} placeholder="e.g. 2.5 cm diameter" value={en.size} onChange={e => setEn({ size: e.target.value })} /></label>
-              <label className="field">Cover photo description<input maxLength={200} value={en.caption} onChange={e => setEn({ caption: e.target.value })} /></label>
+            <div className="lang-tabs" role="tablist">{locales.map(l => <button key={l} type="button" role="tab" aria-selected={editLang === l} className={editLang === l ? 'active' : ''} onClick={() => setEditLang(l)}>{nativeName[l]}{filled(draft, l) ? ' ✓' : ''}</button>)}</div>
+            {editLang !== 'es' ? <>
+              <p className="field-help">Recomendado: así la pieza se encuentra en Google en {nativeName[editLang]}. Mientras el nombre y la descripción no estén escritos en este idioma, la pieza no se muestra ni se indexa en esa versión.</p>
+              <label className="field">Nombre de la pieza ({nativeName[editLang]})<input maxLength={100} lang={editLang} value={tr.name} onChange={e => setTr({ name: e.target.value })} /></label>
+              <label className="field">Historia y descripción ({nativeName[editLang]})<textarea rows={5} maxLength={4000} lang={editLang} value={tr.description} onChange={e => setTr({ description: e.target.value })} /></label>
+              <label className="field">Materiales y técnica ({nativeName[editLang]})<input maxLength={150} lang={editLang} value={tr.material} onChange={e => setTr({ material: e.target.value })} /></label>
+              <label className="field">Tamaño y medidas ({nativeName[editLang]})<input maxLength={150} lang={editLang} value={tr.size} onChange={e => setTr({ size: e.target.value })} /></label>
+              <label className="field">Descripción de la foto de portada ({nativeName[editLang]})<input maxLength={200} lang={editLang} value={tr.caption} onChange={e => setTr({ caption: e.target.value })} /></label>
             </> : <>
               <label className="field">Nombre de la pieza<input required minLength={2} maxLength={100} value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} /></label>
               <label className="field">Dirección en internet (slug)<input maxLength={80} placeholder={slugify(draft.name) || 'se genera sola'} pattern="[a-z0-9]+(-[a-z0-9]+)*" value={draft.slug || ''} onChange={e => setDraft({ ...draft, slug: e.target.value.toLowerCase() })} /><small>Aparece en el enlace de la pieza. Déjalo vacío para generarlo desde el nombre; no lo cambies si ya compartiste el enlace.</small></label>

@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import type { Dictionary } from '@/lib/dictionaries';
-import { locales, pagePath, switchLocalePath, type Locale } from '@/lib/i18n';
+import { locales, nativeName, pagePath, prettyPath, switchLocalePath, type Locale } from '@/lib/i18n';
 
 export default function SiteHeader({ lang, dict }: { lang: Locale; dict: Dictionary }) {
-  const pathname = usePathname();
+  const pathname = prettyPath(usePathname());
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const home = `/${lang}`;
@@ -22,7 +22,7 @@ export default function SiteHeader({ lang, dict }: { lang: Locale; dict: Diction
   useEffect(() => setOpen(false), [pathname]);
 
   const remember = (locale: string) => { try { document.cookie = `NEXT_LOCALE=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`; } catch { /* ignore */ } };
-  const language = <div className="lang" role="group" aria-label={dict.nav.language}>{locales.map(l => <Link key={l} href={switchLocalePath(pathname, l)} hrefLang={l} lang={l} aria-current={l === lang ? 'true' : undefined} onClick={() => remember(l)}>{l.toUpperCase()}</Link>)}</div>;
+  const language = <div className="lang" role="group" aria-label={dict.nav.language}>{locales.map(l => <Link key={l} href={switchLocalePath(pathname, l)} hrefLang={l} lang={l} title={nativeName[l]} aria-label={nativeName[l]} aria-current={l === lang ? 'true' : undefined} onClick={() => remember(l)}>{l.toUpperCase()}</Link>)}</div>;
 
   return <>
     <nav className={`nav ${scrolled ? 'scrolled' : ''}`} aria-label={dict.nav.menuTitle}>

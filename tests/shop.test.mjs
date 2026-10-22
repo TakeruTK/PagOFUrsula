@@ -163,7 +163,7 @@ test('language negotiation and localized pages with hreflang, canonical and stru
   assert.match(html, new RegExp(`hrefLang="es" href="http://127.0.0.1:3013/es/joyas/${pieces[0].slug}"`)); assert.match(html, /"@type":"BreadcrumbList"/);
   assert.match(html, /og:image" content="http:\/\/127\.0\.0\.1:3013\/en\/opengraph-image/);
   assert.match(await (await request(`/es/joyas/${pieces[0].slug}`)).text(), /<html lang="es"/);
-  assert.equal((await request('/es/joyas/no-existe')).status, 404); assert.equal((await request('/fr')).status, 307);
+  assert.equal((await request('/es/joyas/no-existe')).status, 404); assert.equal((await request('/de')).status, 307);
   for (const p of ['/es/terminos', '/es/privacidad', '/en/terms', '/en/privacy']) assert.equal((await request(p)).status, 200, p);
   assert.equal((await request('/es/envios-y-devoluciones')).status, 404);
 });
@@ -230,6 +230,49 @@ test('starting on a database from the payment version drops its orders tables an
   assert.ok(tables.includes('pieces') && tables.includes('settings') && tables.includes('photos'));
   assert.equal(db.prepare('SELECT count(*) c FROM pieces').get().c, 8, 'the starter catalog is created as usual');
   db.close();
+});
+
+// ---- Four languages: Spanish, English, Portuguese and French ----------------------------------------------------------
+const LANGS = { es: { home: '/es', pages: ['coleccion', 'sobre-mi', 'contacto', 'terminos', 'privacidad'], piece: 'joyas' }, en: { home: '/en', pages: ['collection', 'about', 'contact', 'terms', 'privacy'], piece: 'jewelry' }, pt: { home: '/pt', pages: ['colecao', 'sobre', 'contato', 'termos', 'privacidade'], piece: 'joias' }, fr: { home: '/fr', pages: ['collection', 'a-propos', 'contact', 'conditions', 'confidentialite'], piece: 'bijoux' } };
+test('Portuguese and French are negotiated, routed and fully served like Spanish and English', async () => {
+  const to = async (accept, cookie) => (await request('/', { headers: { 'Accept-Language': accept, ...(cookie ? { Cookie: cookie } : {}) } })).headers.get('location');
+  assert.match(await to('pt-BR,pt;q=0.9,en;q=0.5'), /\/pt$/); assert.match(await to('pt-PT'), /\/pt$/);
+  assert.match(await to('fr-CH,fr;q=0.9'), /\/fr$/); assert.match(await to('es-MX,es;q=0.9'), /\/es$/);
+  assert.match(await to('de-DE,de;q=0.9'), /\/en$/, 'languages we do not translate fall back to English');
+  assert.match(await to('en-GB', 'NEXT_LOCALE=fr'), /\/fr$/, 'the visitor\'s own choice wins');
+  for (const [lang, def] of Object.entries(LANGS)) {
+    const home = await request(def.home); const html = await home.text();
+    assert.equal(home.status, 200, lang); assert.match(html, new RegExp(`<html lang="${lang}"`));
+    for (const l of Object.keys(LANGS)) assert.match(html, new RegExp(`hrefLang="${l}" href="http://127\\.0\\.0\\.1:3013/${l}"`), `${lang} home links ${l}`);
+    assert.match(html, /hrefLang="x-default"/); assert.match(html, new RegExp(`rel="canonical" href="http://127\\.0\\.0\\.1:3013/${lang}"`));
+    assert.match(html, /<h1 class="hero-logo">/); assert.match(html, /"inLanguage":\["es","en","pt","fr"\]/);
+    for (const page of def.pages) { const r = await request(`/${lang}/${page}`); assert.equal(r.status, 200, `/${lang}/${page}`); assert.match(await r.text(), new RegExp(`<html lang="${lang}"`)); }
+    const piece = await request(`/${lang}/${def.piece}/${pieces[0].slug}`); assert.equal(piece.status, 200, `piece in ${lang}`);
+    const body = await piece.text(); assert.match(body, /"@type":"Product"/); assert.doesNotMatch(body, /name="robots" content="noindex, follow"/, `${lang} piece is indexable once written in that language`);
+  }
+  assert.match(await (await request(`/pt/joias/${pieces[0].slug}`)).text(), /<h1>Brincos Sendero<\/h1>/);
+  assert.match(await (await request(`/fr/bijoux/${pieces[0].slug}`)).text(), /<h1>Boucles d’oreilles Sendero<\/h1>/);
+  assert.match(await (await request('/fr/conditions')).text(), /Conditions des demandes et des achats/); assert.match(await (await request('/pt/privacidade')).text(), /Política de privacidade/);
+  const switcher = await (await request('/pt/colecao')).text();
+  for (const target of ['/es/coleccion', '/en/collection', '/fr/collection']) assert.ok(switcher.includes(`href="${target}"`), `the language switcher goes to ${target}`);
+  assert.ok((await (await request(`/fr/bijoux/${pieces[0].slug}`)).text()).includes(`href="/en/jewelry/${pieces[0].slug}"`), 'pieces keep their address across languages');
+});
+test('a piece without a translation is kept out of that language for search engines and visitors', async () => {
+  const bare = { ...pieces[0], id: undefined, slug: undefined, name: 'Solo en español', description: 'Una pieza que aún no tiene traducciones escritas.', status: 'Publicado', translations: undefined };
+  const created = await request('/api/pieces', { method: 'POST', auth: true, body: bare }); assert.equal(created.status, 200); const id = (await created.json()).id;
+  const en = await request('/en/jewelry/solo-en-espanol'); assert.equal(en.status, 200); const html = await en.text();
+  assert.match(html, /name="robots" content="noindex, follow"/, 'an English page that would repeat the Spanish text is not indexed');
+  assert.doesNotMatch(html, /<link rel="alternate" hrefLang="en"/); assert.match(html, /hrefLang="es" href="[^"]*\/es\/joyas\/solo-en-espanol"/);
+  assert.doesNotMatch(await (await request('/en/collection')).text(), /Solo en español/, 'and it is not listed in the English collection');
+  assert.match(await (await request('/es/coleccion')).text(), /Solo en español/);
+  const map = await (await request('/sitemap.xml')).text();
+  assert.ok(map.includes('/es/joyas/solo-en-espanol') && !map.includes('/en/jewelry/solo-en-espanol') && !map.includes('/fr/bijoux/solo-en-espanol'), 'the sitemap lists only the languages that exist');
+  const status = await (await request('/api/admin/status', { auth: true })).json();
+  assert.ok(status.checks.some(c => c.id === 'translations' && !c.ok && /Français/.test(c.hint)), 'the panel tells the owner what is missing');
+  assert.equal((await request('/api/pieces', { method: 'PUT', auth: true, body: { ...bare, id, translations: { fr: { name: 'Seulement en espagnol', description: 'Une pièce écrite uniquement en français.', material: '', size: '', caption: '' } } } })).status, 200);
+  assert.doesNotMatch(await (await request('/fr/bijoux/solo-en-espanol')).text(), /name="robots" content="noindex, follow"/, 'writing the French text makes the French page indexable');
+  assert.ok((await (await request('/sitemap.xml')).text()).includes('/fr/bijoux/solo-en-espanol'));
+  assert.equal((await request(`/api/pieces?id=${id}`, { method: 'DELETE', auth: true })).status, 200);
 });
 
 // ---- Account ----------------------------------------------------------------------------------------------------------

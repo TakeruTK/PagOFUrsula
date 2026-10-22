@@ -6,9 +6,10 @@ import Photo from '@/components/photo';
 import Tilt from '@/components/tilt';
 import { toCards } from '@/lib/catalog';
 import { getDictionary } from '@/lib/dictionaries';
-import { isLocale, pagePath } from '@/lib/i18n';
+import { homePath, isLocale, pagePath } from '@/lib/i18n';
 import { initialPieces } from '@/lib/seed';
-import { absolute, jsonLd, pageMetadata } from '@/lib/seo';
+import { absolute, breadcrumbs, jsonLd, pageMetadata } from '@/lib/seo';
+import { textsFor } from '@/lib/pieces';
 import { getPieces, getSettings } from '@/lib/store';
 
 export const dynamic = 'force-dynamic';
@@ -26,13 +27,13 @@ export default async function AboutPage({ params }: Props) {
   if (!isLocale(lang)) notFound();
   const dict = getDictionary(lang);
   const settings = getSettings();
-  const text = lang === 'en' ? settings.en : settings;
+  const text = textsFor(settings, lang);
   const paragraphs = text.story.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
   const cards = toCards(getPieces(), lang);
   const photo = settings.images.about || (cards[1] || cards[0] || toCards(initialPieces, lang)[1]).images[0];
   const about = { '@context': 'https://schema.org', '@type': 'AboutPage', name: dict.pages.about.metaTitle, url: absolute(pagePath(lang, 'about')), inLanguage: lang, about: { '@id': absolute('/#organization') } };
   return <main>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(about) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd([about, breadcrumbs([{ name: dict.nav.home, path: homePath(lang) }, { name: dict.nav.about, path: pagePath(lang, 'about') }])]) }} />
     <header className="page-head">
       <p className="eyebrow">{dict.about.eyebrow}</p>
       <h1>{dict.about.title}</h1>

@@ -17,6 +17,10 @@ const sans = Outfit({ subsets: ['latin', 'latin-ext'], weight: ['300', '400'], v
 export const viewport: Viewport = { themeColor: '#bec092', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
+  // Every inner page ends with the brand: "Aros argollas con brotes · Aros | Ursula Alcaino".
+  title: { template: '%s | Ursula Alcaino', default: 'Ursula Alcaino · Orfebrería' },
+  // Search Console and Bing Webmaster ownership codes, set in the server environment once the domain exists.
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION || undefined, other: process.env.BING_SITE_VERIFICATION ? { 'msvalidate.01': process.env.BING_SITE_VERIFICATION } : undefined },
   robots: robotsMeta(),
   icons: { icon: '/favicon.png', apple: '/apple-touch-icon.png' },
   applicationName: 'Ursula Alcaino · Orfebrería',

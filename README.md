@@ -1,6 +1,6 @@
 # Ursula Alcaino · Orfebrería
 
-Sitio de joyería de autora, en español e inglés, con un diseño editorial inspirado en casaorfebre.cl: portada oscura a pantalla completa, texto sobre el trabajo, piezas únicas con su material y botones de contacto. **No hay pasarela de pago**: las ventas se conversan por WhatsApp, Instagram o correo. Incluye SEO internacional y un taller privado para administrar piezas y textos.
+Sitio de joyería de autora, en cuatro idiomas (español, inglés, portugués y francés), con un diseño editorial inspirado en casaorfebre.cl: portada oscura a pantalla completa, texto sobre el trabajo, piezas únicas con su material y botones de contacto. **No hay pasarela de pago**: las ventas se conversan por WhatsApp, Instagram o correo. Incluye SEO internacional y un taller privado para administrar piezas y textos.
 
 > La versión anterior, con Mercado Pago, PayPal, carrito y pedidos, se conserva en la rama de git `feature/payments-i18n`.
 
@@ -29,14 +29,14 @@ Se leen de `.env.local` o del entorno del servidor.
 
 ## Páginas del sitio
 
-| Página | `/es` | `/en` |
-| --- | --- | --- |
-| Inicio (portada, destacadas, contacto) | `/es` | `/en` |
-| Colección completa con filtro por categoría | `/es/coleccion` | `/en/collection` |
-| Sobre mi trabajo | `/es/sobre-mi` | `/en/about` |
-| Contacto (canales y cómo conseguir una pieza) | `/es/contacto` | `/en/contact` |
-| Cada pieza | `/es/joyas/<pieza>` | `/en/jewelry/<pieza>` |
-| Condiciones y privacidad | `/es/terminos`, `/es/privacidad` | `/en/terms`, `/en/privacy` |
+| Página | `/es` | `/en` | `/pt` | `/fr` |
+| --- | --- | --- | --- | --- |
+| Inicio | `/es` | `/en` | `/pt` | `/fr` |
+| Colección | `/es/coleccion` | `/en/collection` | `/pt/colecao` | `/fr/collection` |
+| Sobre mi trabajo | `/es/sobre-mi` | `/en/about` | `/pt/sobre` | `/fr/a-propos` |
+| Contacto | `/es/contacto` | `/en/contact` | `/pt/contato` | `/fr/contact` |
+| Cada pieza | `/es/joyas/<pieza>` | `/en/jewelry/<pieza>` | `/pt/joias/<pieza>` | `/fr/bijoux/<pieza>` |
+| Condiciones y privacidad | `/es/terminos`, `/es/privacidad` | `/en/terms`, `/en/privacy` | `/pt/termos`, `/pt/privacidade` | `/fr/conditions`, `/fr/confidentialite` |
 
 Todas tienen título, descripción, `canonical`, `hreflang` y entrada en el sitemap; colección, sobre mí y contacto incluyen datos estructurados (`CollectionPage`, `AboutPage`, `ContactPage`).
 
@@ -46,18 +46,20 @@ Cada pieza lleva un botón **Consultar por WhatsApp** que abre la conversación 
 
 ## SEO internacional
 
-- Rutas por idioma: `/es` y `/en`; `/` redirige según el idioma del navegador.
+- Rutas por idioma: `/es` (Latinoamérica y España), `/en` (Europa y el mundo), `/pt` (Brasil y Portugal) y `/fr` (Francia, Bélgica y Suiza); `/` redirige según el idioma del navegador (si no está traducido, a inglés).
 - Direcciones traducidas en cada idioma (ver tabla de páginas).
-- `canonical`, `hreflang` (es, en, x-default), Open Graph y Twitter por página; imagen social generada.
+- `canonical`, `hreflang` (es, en, pt, fr, x-default; solo los idiomas en que la página existe de verdad), Open Graph y Twitter por página; imagen social generada.
 - JSON-LD: Organization, WebSite, Product y BreadcrumbList (el precio solo se publica si la clienta decide mostrarlo).
-- `sitemap.xml` con ambas versiones de idioma y `robots.txt` dinámico.
-- El panel permite nombre, descripción, materiales y descripción de foto en inglés por pieza.
+- `sitemap.xml` con las versiones de idioma de cada página (y fotos para Google Imágenes) y `robots.txt` dinámico.
+- El panel permite escribir nombre, descripción, materiales, tamaño y descripción de foto en cada idioma. Una pieza sin traducir no se lista en ese idioma y su página va con `noindex`, para no duplicar el texto en español.
+- Verificación de buscadores: `GOOGLE_SITE_VERIFICATION` y `BING_SITE_VERIFICATION` (códigos de Search Console y Bing Webmaster).
+- Los textos en portugués y francés de la historia de la artesana fueron traducidos por nosotros: conviene que ella los revise.
 
 Antes de abrir al público: define `SITE_URL` (https), sube fotografías reales, completa el WhatsApp y recién entonces pon `ALLOW_INDEXING=true`. El panel (*Resumen*) muestra qué falta.
 
 ## Taller
 
-`/admin`: resumen con lista de lanzamiento; piezas (fotos, slug, inglés, duplicar, borrador/publicado, orden, portada); textos de la página en español e inglés; contacto; condiciones y privacidad; cambio de contraseña.
+`/admin`: resumen con lista de lanzamiento; piezas (fotos, slug, idiomas, duplicar, borrador/publicado, orden, portada); textos de la página en los cuatro idiomas; contacto; condiciones y privacidad; cambio de contraseña.
 
 ## Validación
 

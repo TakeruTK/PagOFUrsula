@@ -10,6 +10,7 @@ import { getDictionary } from '@/lib/dictionaries';
 import { homePath, isLocale, locales, pagePath, type Locale } from '@/lib/i18n';
 import { initialPieces } from '@/lib/seed';
 import { absolute, alternates, jsonLd, openGraphBase } from '@/lib/seo';
+import { textsFor } from '@/lib/pieces';
 import { getPieces, getSettings } from '@/lib/store';
 
 export const dynamic = 'force-dynamic';
@@ -33,7 +34,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   if (!isLocale(lang)) notFound();
   const dict = getDictionary(lang);
   const settings = getSettings();
-  const text = lang === 'en' ? settings.en : settings;
+  const text = textsFor(settings, lang);
   const cards = toCards(getPieces(), lang);
   const fallbackCover = (cards.find(p => p.featured) || cards[0] || toCards(initialPieces, lang)[0]).images[0];
   // The owner can pick the home photos in the workshop; without a choice the featured pieces are used.

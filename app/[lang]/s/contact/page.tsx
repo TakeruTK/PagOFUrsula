@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { mailLink, profileHandle, whatsappLink } from '@/lib/contact';
 import { getDictionary } from '@/lib/dictionaries';
-import { isLocale, pagePath } from '@/lib/i18n';
-import { absolute, jsonLd, pageMetadata } from '@/lib/seo';
+import { homePath, isLocale, pagePath } from '@/lib/i18n';
+import { absolute, breadcrumbs, jsonLd, pageMetadata } from '@/lib/seo';
 import { getSettings } from '@/lib/store';
 
 export const dynamic = 'force-dynamic';
@@ -34,7 +34,7 @@ export default async function ContactPage({ params }: Props) {
     about: { '@id': absolute('/#organization') },
   };
   return <main>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(page) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd([page, breadcrumbs([{ name: dict.nav.home, path: homePath(lang) }, { name: dict.nav.contact, path: pagePath(lang, 'contact') }])]) }} />
     <header className="page-head">
       <p className="eyebrow">{dict.nav.contact}</p>
       <h1>{c.title}</h1>

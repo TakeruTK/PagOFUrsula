@@ -40,9 +40,11 @@ function backfillSlugs(db: DatabaseSync) {
   for (const { id, piece } of rows) {
     let changed = false;
     if (!piece.slug) { piece.slug = uniqueSlug(piece.name, taken); taken.add(piece.slug); changed = true; }
-    // Starter pieces saved before English existed get their starter translation.
+    // Starter pieces saved before a language existed get that language's starter translation.
     const starter = initialPieces.find(p => p.id === id);
-    if (starter && !piece.translations?.en?.name) { piece.translations = starter.translations; changed = true; }
+    if (starter) for (const l of ['en', 'pt', 'fr'] as const) {
+      if (!piece.translations?.[l]?.name && starter.translations?.[l]) { piece.translations = { ...piece.translations, [l]: starter.translations[l] }; changed = true; }
+    }
     if (changed) db.prepare('UPDATE pieces SET content=? WHERE id=?').run(JSON.stringify(piece), id);
   }
 }

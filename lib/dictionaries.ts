@@ -90,6 +90,95 @@ const en: Dictionary = {
   notFound: { title: 'We could not find this page.', text: 'Maybe the piece you were looking for already found its owner. Go back to the pieces.', cta: 'Back to home' },
 };
 
-const dictionaries: Record<Locale, Dictionary> = { es, en };
+
+const pt: Dictionary = {
+  site: { name: 'Ursula Alcaino · Orfebrería' },
+  meta: {
+    homeTitle: 'Ursula Alcaino · Joias de autor feitas à mão no Chile',
+    homeDescription: 'O luxo do irrepetível: joias de autor criadas à mão para quem encontra beleza no singular e significado no extraordinário. Escreva-nos para conseguir a sua peça.',
+    notFoundTitle: 'Página não encontrada',
+  },
+  nav: { collection: 'Coleção', about: 'Sobre', contact: 'Contato', language: 'Idioma', menu: 'Abrir menu', menuTitle: 'Menu', close: 'Fechar', home: 'Início' },
+  hero: { kicker: 'JOIAS DE AUTOR', scroll: 'Descubra' },
+  about: {
+    eyebrow: 'POR TRÁS DE CADA JOIA, UMA HISTÓRIA',
+    title: 'Minha história como ourives',
+    pillars: [
+      { title: 'VINTE ANOS DE OFÍCIO', text: 'Vinte anos criando, aprendendo e descobrindo novas formas de expressar o meu olhar.' },
+      { title: 'O IRREPETÍVEL', text: 'Joias de autor criadas à mão para quem encontra beleza no singular.' },
+      { title: 'PENSADAS PARA CADA MULHER', text: 'Cada lóbulo é diferente, cada mulher tem suas próprias necessidades e seu próprio ritmo de vida.' },
+      { title: 'UM OLHAR PRÓPRIO', text: 'Uma inquietação da juventude, o fecho dos brincos, que se tornou a minha maneira de entender a joalheria.' },
+    ],
+  },
+  collection: { eyebrow: 'PEÇAS ÚNICAS', all: 'Todas', filterLabel: 'Filtrar por categoria', emptyTitle: 'Em breve haverá novas peças.', emptyText: 'Enquanto isso, acompanhe o processo no Instagram.', available: 'Disponível', onRequest: 'Sob encomenda', sold: 'Vendida', view: 'Ver {name}', price: 'Valor de referência {price}' },
+  instagram: { text: 'Você pode acompanhar meu processo, ver novas peças e próximos projetos no Instagram.', button: 'INSTAGRAM' },
+  cta: { title: 'Interessou-se por alguma peça ou tem uma ideia que combine com o meu estilo?', whatsapp: 'VAMOS CONVERSAR NO WHATSAPP', email: 'ESCREVA-NOS UM E-MAIL', note: 'Aqui não há pagamento online: conversamos, confirmamos a disponibilidade e combinamos o pagamento e o envio.', whatsappMessage: 'Olá Ursula, gostaria de conversar sobre as suas joias.' },
+  piece: { breadcrumb: 'Trilha de navegação', details: 'Materiais e técnica', size: 'Tamanho', availability: 'Disponibilidade', unconfirmed: 'A confirmar', ask: 'CONSULTAR NO WHATSAPP', askEmail: 'CONSULTAR POR E-MAIL', askInstagram: 'ESCREVER NO INSTAGRAM', unique: 'Peça única ou de tiragem muito limitada. Escreva-nos para confirmar disponibilidade, valor e envio.', whatsappMessage: 'Olá Ursula, tenho interesse na peça “{name}” ({url}). Está disponível?', emailSubject: 'Consulta sobre a peça {name}', related: 'Outras peças', photo: 'Ver fotografia {n}', price: 'Valor de referência' },
+  home: { aboutLink: 'Leia a minha história', featured: 'Peças em destaque', all: 'VER TODA A COLEÇÃO', contactLink: 'IR PARA CONTATO' },
+  pages: {
+    collection: { metaTitle: 'Coleção de joias artesanais', metaDescription: 'Brincos, anéis e pingentes feitos à mão por Ursula Alcaino. Peças únicas ou de tiragem muito limitada, inspiradas na natureza, no metal e na cor.', intro: 'Brincos, anéis e pingentes feitos à mão. Cada peça é única ou de tiragem muito limitada.' },
+    about: { metaTitle: 'Minha história como ourives', metaDescription: 'Vinte anos criando joias de autor: a história de Ursula Alcaino, ourives, e como nasceu o seu olhar sobre a joalheria.', imageAlt: 'Detalhe de uma joia de Ursula Alcaino', more: 'VER A COLEÇÃO' },
+    contact: {
+      title: 'Vamos conversar', metaTitle: 'Contato', metaDescription: 'Escreva para Ursula Alcaino pelo WhatsApp, e-mail ou Instagram para consultar uma peça ou conversar sobre uma ideia.',
+      intro: 'Interessou-se por alguma peça ou tem uma ideia que combine com o meu estilo? Escreva-me e conversamos.',
+      stepsTitle: 'Como conseguir a sua peça',
+      steps: [
+        { title: 'Escolha', text: 'Percorra a coleção e escolha a peça que chamar a sua atenção.' },
+        { title: 'Escreva-nos', text: 'Conte-nos qual lhe interessa. Confirmamos a disponibilidade e o valor.' },
+        { title: 'Combinamos', text: 'Combinamos juntos a forma de pagamento e o envio para o seu país.' },
+      ],
+      channels: 'Canais de contato', whatsapp: 'WhatsApp', whatsappText: 'A forma mais direta de consultar uma peça.', email: 'E-mail', emailText: 'Para consultas mais longas ou ideias para conversar.', instagram: 'Instagram', instagramText: 'Acompanhe o processo e envie-nos uma mensagem direta.', facebook: 'Facebook', facebookText: 'Novidades e mensagens pela nossa página.', tiktok: 'TikTok', tiktokText: 'Veja o processo das peças em vídeo.', open: 'ABRIR',
+    },
+  },
+  footer: { email: 'E-mail', follow: 'Siga-nos e escreva-nos', terms: 'Condições', privacy: 'Privacidade', workshop: 'Acesso ao ateliê', rights: '© {year} Ursula Alcaino · Orfebrería' },
+  legal: { terms: 'Condições de compra', privacy: 'Política de privacidade', empty: 'Este texto será publicado em breve.', contact: 'Contato' },
+  notFound: { title: 'Não encontramos esta página.', text: 'Talvez a joia que você procura já tenha encontrado a sua dona. Volte às peças.', cta: 'Voltar ao início' },
+};
+
+const fr: Dictionary = {
+  site: { name: 'Ursula Alcaino · Orfebrería' },
+  meta: {
+    homeTitle: 'Ursula Alcaino · Bijoux d’auteur faits main au Chili',
+    homeDescription: 'Le luxe de ce qui ne se répète pas : des bijoux d’auteur façonnés à la main pour celles et ceux qui trouvent la beauté dans le singulier. Écrivez-nous pour obtenir votre pièce.',
+    notFoundTitle: 'Page introuvable',
+  },
+  nav: { collection: 'Collection', about: 'À propos', contact: 'Contact', language: 'Langue', menu: 'Ouvrir le menu', menuTitle: 'Menu', close: 'Fermer', home: 'Accueil' },
+  hero: { kicker: 'BIJOUX D’AUTEUR', scroll: 'Découvrir' },
+  about: {
+    eyebrow: 'DERRIÈRE CHAQUE BIJOU, UNE HISTOIRE',
+    title: 'Mon histoire d’orfèvre',
+    pillars: [
+      { title: 'VINGT ANS DE MÉTIER', text: 'Vingt ans à créer, à apprendre et à découvrir de nouvelles façons d’exprimer mon regard.' },
+      { title: 'CE QUI NE SE RÉPÈTE PAS', text: 'Des bijoux d’auteur faits à la main pour celles et ceux qui trouvent la beauté dans le singulier.' },
+      { title: 'PENSÉS POUR CHAQUE FEMME', text: 'Chaque lobe est différent, chaque femme a ses propres besoins et son propre rythme de vie.' },
+      { title: 'UN REGARD PERSONNEL', text: 'Une inquiétude de jeunesse, le crochet des boucles d’oreilles, devenue ma manière de concevoir la joaillerie.' },
+    ],
+  },
+  collection: { eyebrow: 'PIÈCES UNIQUES', all: 'Toutes', filterLabel: 'Filtrer par catégorie', emptyTitle: 'De nouvelles pièces arrivent bientôt.', emptyText: 'En attendant, suivez le processus sur Instagram.', available: 'Disponible', onRequest: 'Sur commande', sold: 'Vendue', view: 'Voir {name}', price: 'Prix indicatif {price}' },
+  instagram: { text: 'Vous pouvez suivre mon processus, découvrir les nouvelles pièces et les projets à venir sur Instagram.', button: 'INSTAGRAM' },
+  cta: { title: 'Une pièce vous intéresse, ou vous avez une idée qui rejoint mon style ?', whatsapp: 'PARLONS-EN SUR WHATSAPP', email: 'ÉCRIVEZ-NOUS UN E-MAIL', note: 'Il n’y a pas de paiement en ligne ici : nous échangeons, confirmons la disponibilité et convenons ensemble du paiement et de la livraison.', whatsappMessage: 'Bonjour Ursula, j’aimerais échanger à propos de vos bijoux.' },
+  piece: { breadcrumb: 'Fil d’Ariane', details: 'Matériaux et technique', size: 'Taille', availability: 'Disponibilité', unconfirmed: 'À confirmer', ask: 'DEMANDER SUR WHATSAPP', askEmail: 'DEMANDER PAR E-MAIL', askInstagram: 'ÉCRIRE SUR INSTAGRAM', unique: 'Pièce unique ou à très petite série. Écrivez-nous pour confirmer sa disponibilité, son prix et la livraison.', whatsappMessage: 'Bonjour Ursula, la pièce « {name} » ({url}) m’intéresse. Est-elle disponible ?', emailSubject: 'Demande à propos de la pièce {name}', related: 'Autres pièces', photo: 'Voir la photo {n}', price: 'Prix indicatif' },
+  home: { aboutLink: 'Lire mon histoire', featured: 'Pièces à la une', all: 'VOIR TOUTE LA COLLECTION', contactLink: 'ALLER AU CONTACT' },
+  pages: {
+    collection: { metaTitle: 'Collection de bijoux faits main', metaDescription: 'Boucles d’oreilles, bagues et pendentifs faits main par Ursula Alcaino. Pièces uniques ou en très petite série, inspirées par la nature, le métal et la couleur.', intro: 'Boucles d’oreilles, bagues et pendentifs faits main. Chaque pièce est unique ou en très petite série.' },
+    about: { metaTitle: 'Mon histoire d’orfèvre', metaDescription: 'Vingt ans de création de bijoux d’auteur : l’histoire d’Ursula Alcaino, orfèvre, et la naissance de son regard sur la joaillerie.', imageAlt: 'Détail d’un bijou d’Ursula Alcaino', more: 'VOIR LA COLLECTION' },
+    contact: {
+      title: 'Parlons-en', metaTitle: 'Contact', metaDescription: 'Écrivez à Ursula Alcaino sur WhatsApp, par e-mail ou sur Instagram pour vous renseigner sur une pièce ou partager une idée.',
+      intro: 'Une pièce vous intéresse, ou vous avez une idée qui rejoint mon style ? Écrivez-moi et nous en parlons.',
+      stepsTitle: 'Comment obtenir votre pièce',
+      steps: [
+        { title: 'Choisissez', text: 'Parcourez la collection et choisissez la pièce qui vous séduit.' },
+        { title: 'Écrivez-nous', text: 'Dites-nous laquelle vous intéresse. Nous confirmons la disponibilité et le prix.' },
+        { title: 'Nous convenons', text: 'Ensemble, nous fixons le mode de paiement et la livraison vers votre pays.' },
+      ],
+      channels: 'Moyens de contact', whatsapp: 'WhatsApp', whatsappText: 'Le moyen le plus direct de se renseigner sur une pièce.', email: 'E-mail', emailText: 'Pour les demandes plus longues ou les idées à partager.', instagram: 'Instagram', instagramText: 'Suivez le processus et envoyez-nous un message privé.', facebook: 'Facebook', facebookText: 'Actualités et messages depuis notre page.', tiktok: 'TikTok', tiktokText: 'Découvrez la création des pièces en vidéo.', open: 'OUVRIR',
+    },
+  },
+  footer: { email: 'E-mail', follow: 'Suivez-nous et écrivez-nous', terms: 'Conditions', privacy: 'Confidentialité', workshop: 'Accès à l’atelier', rights: '© {year} Ursula Alcaino · Orfebrería' },
+  legal: { terms: 'Conditions d’achat', privacy: 'Politique de confidentialité', empty: 'Ce texte sera publié prochainement.', contact: 'Contact' },
+  notFound: { title: 'Nous n’avons pas trouvé cette page.', text: 'Peut-être que le bijou que vous cherchiez a déjà trouvé sa propriétaire. Retournez aux pièces.', cta: 'Retour à l’accueil' },
+};
+
+const dictionaries: Record<Locale, Dictionary> = { es, en, pt, fr };
 export const getDictionary = (locale: Locale) => dictionaries[locale];
 export const fmt = (text: string, values: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
