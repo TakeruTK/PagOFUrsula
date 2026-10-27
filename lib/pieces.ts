@@ -76,7 +76,7 @@ const optionalProfile = (pattern: RegExp) => z.union([z.literal(''), z.string().
 const textsSchema = z.object({
   headline: z.string().trim().min(5).max(100),
   introduction: z.string().trim().min(10).max(500),
-  story: z.string().trim().min(10).max(2000),
+  story: z.string().trim().min(10).max(8000),
   collectionTitle: z.string().trim().min(3).max(100),
 });
 export const settingsSchema = textsSchema.extend({
