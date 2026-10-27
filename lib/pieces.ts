@@ -3,9 +3,11 @@ import type { Locale } from './i18n';
 /** A category the owner can create: its Spanish name is the key stored on each piece, the rest are what visitors read. */
 const categorySchema = z.object({
   es: z.string().trim().min(2).max(40),
-  en: z.string().trim().min(2).max(40),
-  pt: z.string().trim().min(2).max(40),
-  fr: z.string().trim().min(2).max(40),
+  // Only Spanish is written by the owner; the other names are translated on saving.
+  en: z.string().trim().max(40).default(''),
+  pt: z.string().trim().max(40).default(''),
+  fr: z.string().trim().max(40).default(''),
+  auto: z.string().max(40).optional(),
 });
 export type CategoryDef = z.infer<typeof categorySchema>;
 /** The name of a category in a language; a name the list no longer holds is shown as written. */
@@ -22,6 +24,8 @@ const translationSchema = z.object({
   material: z.string().trim().max(150).default(''),
   size: z.string().trim().max(150).default(''),
   caption: z.string().trim().max(200).default(''),
+  // Set while the text was written by the translator; removed as soon as the owner corrects it by hand.
+  auto: z.string().max(40).optional(),
 });
 const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80);
 export const pieceSchema = z.object({
@@ -79,6 +83,7 @@ const textsSchema = z.object({
   introduction: z.string().trim().min(10).max(500),
   story: z.string().trim().min(10).max(8000),
   collectionTitle: z.string().trim().min(3).max(100),
+  auto: z.string().max(40).optional(),
 });
 export const settingsSchema = textsSchema.extend({
   instagram: z.string().url().regex(/^https:\/\/(?:www\.)?instagram\.com\/[a-zA-Z0-9_.]+\/?$/),

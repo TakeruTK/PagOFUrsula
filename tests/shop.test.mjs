@@ -5,18 +5,19 @@ import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, pbkdf2Sync } from 'node:crypto';
 import { once } from 'node:events';
+import { createServer } from 'node:http';
 import path from 'node:path';
 
 const base = 'http://127.0.0.1:3013', live = 'http://127.0.0.1:3015';
 const username = 'test-atelier', password = randomBytes(20).toString('hex'), salt = randomBytes(16).toString('hex');
 const hash = `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex')}`;
-let server, indexed, legacy, cookie = '', pieces, output = '', draftId, photoUrl, settings;
+let server, indexed, legacy, translating, translator, cookie = '', pieces, output = '', draftId, photoUrl, settings;
 
 const request = (url, { method = 'GET', body, auth = false, origin = base, headers = {}, ...rest } = {}) => fetch(base + url, { method, headers: { ...(method !== 'GET' ? { Origin: origin } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}), ...(auth ? { Cookie: cookie } : {}), ...headers }, body: body ? JSON.stringify(body) : undefined, redirect: 'manual', ...rest });
 const saveSettings = patch => request('/api/settings', { method: 'PUT', auth: true, body: { ...settings, ...patch } });
 
 function launch(port, env, dataDir = mkdtempSync(path.resolve('test-results', 'database-'))) {
-  const child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], { cwd: process.cwd(), env: { ...process.env, ADMIN_USERNAME: username, ADMIN_PASSWORD_HASH: hash, DATA_DIR: dataDir, ...env }, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+  const child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], { cwd: process.cwd(), env: { ...process.env, ADMIN_USERNAME: username, ADMIN_PASSWORD_HASH: hash, DATA_DIR: dataDir, ANTHROPIC_API_KEY: '', TRANSLATE_URL: 'http://127.0.0.1:9/', ...env }, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
   child.stdout.on('data', d => output += d); child.stderr.on('data', d => output += d);
   return child;
 }
@@ -36,7 +37,8 @@ before(async () => {
   settings = await (await request('/api/settings', { auth: true })).json();
 });
 after(async () => {
-  for (const child of [server, indexed, legacy]) if (child && child.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
+  translator?.close();
+  for (const child of [server, indexed, legacy, translating]) if (child && child.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
 });
 
 // ---- No payment gateway ---------------------------------------------------------------------------------------
@@ -290,6 +292,47 @@ test('the owner can create categories, pieces must use one, and a category in us
   assert.equal((await put({ ...settings, categories: without })).status, 400, 'a category with pieces cannot be removed');
   assert.equal((await request(`/api/pieces?id=${id}`, { method: 'DELETE', auth: true })).status, 200);
   assert.equal((await put({ ...settings, categories: without })).status, 200, 'once empty it can be removed');
+});
+
+// ---- Automatic translation: the owner writes only Spanish ----------------------------------------------------------------
+test('Spanish is translated automatically, corrections by hand are kept, and a translator that is down does not block saving', async () => {
+  // Without a reachable translator the Spanish text is still saved and the owner is told.
+  const offline = await request('/api/pieces', { method: 'POST', auth: true, body: { ...pieces[0], id: undefined, slug: undefined, name: 'Sin traductor', status: 'Borrador', translations: undefined } });
+  assert.equal(offline.status, 200); const note = (await offline.json()); assert.match(note.warning, /no pudimos traducir/);
+  await request(`/api/pieces?id=${note.id}`, { method: 'DELETE', auth: true });
+
+  translator = createServer((req, res) => {
+    let raw = ''; req.on('data', c => raw += c); req.on('end', () => { const q = new URLSearchParams(raw); res.setHeader('content-type', 'application/json'); res.end(JSON.stringify([[[`[${q.get('tl')}] ${q.get('q')}`, q.get('q')]]])); });
+  }).listen(3018);
+  await once(translator, 'listening');
+  translating = launch(3019, { SITE_URL: 'http://127.0.0.1:3019', TRANSLATE_URL: 'http://127.0.0.1:3018/' });
+  const host = 'http://127.0.0.1:3019'; await ready(host + '/es');
+  const login = await fetch(host + '/api/admin/login', { method: 'POST', headers: { Origin: host, 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+  const auth = { Origin: host, 'Content-Type': 'application/json', Cookie: login.headers.get('set-cookie').split(';')[0] };
+  const send = (url, method, body) => fetch(host + url, { method, headers: auth, body: body && JSON.stringify(body) });
+  const spanish = { name: 'Aros de luna', category: 'Aros', description: 'Aros de plata hechos a mano con forma de luna.', material: 'Plata 950', size: '', price: 0, status: 'Publicado', availability: 'Disponible', order: 0, featured: false, images: [{ url: '/references/silver.png', caption: 'Aros de luna' }] };
+  const created = await send('/api/pieces', 'POST', spanish); assert.equal(created.status, 200);
+  const made = await created.json(); assert.equal(made.warning, undefined);
+  const all = await (await send('/api/pieces', 'GET')).json(); const piece = all.find(p => p.id === made.id);
+  assert.equal(piece.translations.fr.name, '[fr] Aros de luna'); assert.equal(piece.translations.pt.material, '[pt] Plata 950');
+  const english = await (await fetch(`${host}/en/jewelry/${piece.slug}`)).text();
+  assert.match(english, /<h1>\[en\] Aros de luna<\/h1>/); assert.doesNotMatch(english, /noindex, follow/);
+  assert.ok((await (await fetch(host + '/sitemap.xml')).text()).includes(`/fr/bijoux/${piece.slug}`), 'the machine-written languages enter the sitemap');
+  // Changing the Spanish text refreshes the machine translation...
+  await send('/api/pieces', 'PUT', { ...piece, name: 'Aros de luna nueva' });
+  let again = (await (await send('/api/pieces', 'GET')).json()).find(p => p.id === piece.id);
+  assert.equal(again.translations.en.name, '[en] Aros de luna nueva');
+  // ...but a version the owner corrected by hand is never overwritten.
+  await send('/api/pieces', 'PUT', { ...again, translations: { ...again.translations, en: { ...again.translations.en, name: 'Moon hoops', auto: undefined } } });
+  await send('/api/pieces', 'PUT', { ...again, name: 'Aros de luna llena', translations: { ...again.translations, en: { ...again.translations.en, name: 'Moon hoops', auto: undefined } } });
+  again = (await (await send('/api/pieces', 'GET')).json()).find(p => p.id === piece.id);
+  assert.equal(again.translations.en.name, 'Moon hoops'); assert.equal(again.translations.fr.name, '[fr] Aros de luna llena');
+  // A new category only needs its Spanish name.
+  const config = await (await send('/api/settings', 'GET')).json();
+  assert.equal((await send('/api/settings', 'PUT', { ...config, categories: [...config.categories, { es: 'Pulseras de mano', en: '', pt: '', fr: '' }] })).status, 200);
+  const updated = await (await send('/api/settings', 'GET')).json();
+  assert.deepEqual(updated.categories.at(-1) && [updated.categories.at(-1).en, updated.categories.at(-1).fr], ['[en] Pulseras de mano', '[fr] Pulseras de mano']);
+  assert.equal(updated.fr.headline.startsWith('[fr] ') || updated.fr.headline.length > 4, true);
 });
 
 // ---- Account ----------------------------------------------------------------------------------------------------------

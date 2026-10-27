@@ -12,3 +12,5 @@ export function withinBudget(key:string,max:number,windowMs:number){
   const row=db.prepare('INSERT INTO attempts VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count').get(key,now+windowMs);
   return Number(row?.count)<=max;
 }
+/** What to tell the owner when the translator could not reach a language; the Spanish text is saved either way. */
+export const translationNote=(failed:string[])=>failed.length?'Guardado, pero no pudimos traducir al '+failed.map(l=>({en:'inglés',pt:'portugués',fr:'francés'}[l]||l)).join(', ')+'. Se reintentará al guardar de nuevo o con «Traducir todo».':undefined;

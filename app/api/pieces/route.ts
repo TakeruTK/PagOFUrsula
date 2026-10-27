@@ -1,7 +1,9 @@
 import { database,getPieces,getSettings } from '@/lib/store';
 import { protect } from '@/lib/admin-auth';
 import { pieceSchema, uniqueSlug } from '@/lib/pieces';
-import { jsonBody,invalid } from '@/lib/http';
+import { jsonBody,invalid,translationNote } from '@/lib/http';
+import { translatePiece } from '@/lib/autotranslate';
+import type { Piece } from '@/lib/pieces';
 export const dynamic='force-dynamic';
 export async function GET(request:Request){const denied=await protect(request);if(denied)return denied;return Response.json(getPieces(true),{headers:{'Cache-Control':'no-store'}});}
 export async function POST(request:Request){return save(request,false);}
@@ -20,9 +22,10 @@ async function save(request:Request,update:boolean){
     if(wanted&&others.some(x=>x.slug===wanted))return Response.json({error:'Otra pieza ya usa esa dirección (slug). Elige otra.'},{status:400});
     p.slug=wanted||uniqueSlug(p.name,others.map(x=>x.slug));
     for(const photo of p.images){if(photo.url.startsWith('/api/photos/')&&!database().prepare('SELECT id FROM photos WHERE id=?').get(photo.url.split('/').pop()!))return Response.json({error:'Una fotografía no existe. Vuelve a subirla.'},{status:400});}
-    const result=update?database().prepare('UPDATE pieces SET content=? WHERE id=?').run(JSON.stringify({...p,id}),id):database().prepare('INSERT INTO pieces VALUES (?,?)').run(id,JSON.stringify({...p,id}));
+    const translated=await translatePiece({...p,id,slug:p.slug} as Piece);
+    const result=update?database().prepare('UPDATE pieces SET content=? WHERE id=?').run(JSON.stringify(translated.value),id):database().prepare('INSERT INTO pieces VALUES (?,?)').run(id,JSON.stringify(translated.value));
     if(!result.changes)return Response.json({error:'La pieza ya no existe.'},{status:404});
-    return Response.json({id});
+    return Response.json({id,warning:translationNote(translated.failed)});
   }catch(e){return invalid(e);}
 }
 export async function DELETE(request:Request){const denied=await protect(request);if(denied)return denied;const id=new URL(request.url).searchParams.get('id');if(!id)return Response.json({error:'Falta la pieza.'},{status:400});database().prepare('DELETE FROM pieces WHERE id=?').run(id);return Response.json({ok:true});}
