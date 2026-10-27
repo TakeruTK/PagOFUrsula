@@ -97,7 +97,15 @@ Les services de messagerie (WhatsApp, Instagram, votre fournisseur de messagerie
 Vous pouvez nous demander d'accéder à vos données, de les corriger ou de les supprimer en écrivant à l'adresse e-mail de contact de la boutique.`,
 };
 
+const initialCategories: Settings['categories'] = [
+  { es: 'Aros', en: 'Earrings', pt: 'Brincos', fr: 'Boucles d’oreilles' },
+  { es: 'Anillos', en: 'Rings', pt: 'Anéis', fr: 'Bagues' },
+  { es: 'Collares', en: 'Necklaces', pt: 'Colares', fr: 'Colliers' },
+  { es: 'Pulseras', en: 'Bracelets', pt: 'Pulseiras', fr: 'Bracelets' },
+  { es: 'Otros', en: 'Other', pt: 'Outros', fr: 'Autres' },
+];
 export const initialSettings: Settings = {
+  categories: initialCategories,
   headline: 'Joyas creadas desde la naturaleza, la materia y el color.',
   introduction: 'Formas orgánicas, destellos de color y pequeños detalles que hacen la diferencia. Descubre el universo de Ursula Alcaino.',
   story: 'Una curva, una textura, un reflejo. El trabajo de Ursula Alcaino invita a mirar de cerca: piezas donde las formas de la naturaleza se encuentran con la expresión del metal. Un universo de joyas con carácter propio, para acompañar tu manera de ser.',
@@ -130,7 +138,7 @@ export const initialSettings: Settings = {
   policies: { es: policiesEs, en: policiesEn, pt: policiesPt, fr: policiesFr },
 };
 
-type Row = { es: string; en: string; pt: string; fr: string; category: Piece['category']; price: number; url: string; crop: NonNullable<Piece['images'][number]['crop']> };
+type Row = { es: string; en: string; pt: string; fr: string; category: string; price: number; url: string; crop: NonNullable<Piece['images'][number]['crop']> };
 const references: Row[] = [
   { es: 'Aros Sendero', en: 'Sendero earrings', pt: 'Brincos Sendero', fr: 'Boucles d’oreilles Sendero', category: 'Aros', price: 38900, url: 'ursula', crop: [57, 182, 364, 363, 475, 621] },
   { es: 'Aros Brisa verde', en: 'Green Breeze earrings', pt: 'Brincos Brisa verde', fr: 'Boucles d’oreilles Brise verte', category: 'Aros', price: 32900, url: 'color', crop: [583, 10, 274, 364, 1443, 754] },

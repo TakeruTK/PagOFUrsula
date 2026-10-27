@@ -18,7 +18,7 @@ function load(lang: Locale, slug: string) {
   const piece = getPieceBySlug(slug);
   if (!piece) return null;
   // The page itself is served in any language; only pieces written in that language are suggested next to it.
-  return { piece, cards: toCards(getPieces(), lang), card: toCard(piece, lang) };
+  return { piece, cards: toCards(getPieces(), lang, getSettings().categories), card: toCard(piece, lang, getSettings().categories) };
 }
 const clean = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text);
 

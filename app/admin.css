@@ -191,3 +191,9 @@ h1,h2,h3{font-family:var(--serif);font-weight:400}
 .studio-sidebar .brand-lockup img{height:48px}
 .login-page .brand-lockup img{height:52px}
 @media(max-width:900px){.studio-sidebar .brand-lockup{margin:0 6px 0 0}.studio-sidebar .brand-lockup img{height:30px}}
+
+.category-editor{margin-bottom:22px}.category-editor summary{cursor:pointer;font-size:15px}.category-editor form{margin-top:18px}
+.category-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:12px;align-items:end;margin-bottom:14px}
+.category-row .field{margin:0}
+.row-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+@media(max-width:900px){.category-row{grid-template-columns:1fr 1fr}.category-row .button{grid-column:1/-1;justify-self:start}}

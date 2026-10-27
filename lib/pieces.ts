@@ -1,14 +1,15 @@
 import { z } from 'zod';
 import type { Locale } from './i18n';
-export const categories = ['Aros', 'Anillos', 'Collares', 'Pulseras', 'Otros'] as const;
-type Category = (typeof categories)[number];
-const categoryNames: Record<Locale, Record<Category, string>> = {
-  es: { Aros: 'Aros', Anillos: 'Anillos', Collares: 'Collares', Pulseras: 'Pulseras', Otros: 'Otros' },
-  en: { Aros: 'Earrings', Anillos: 'Rings', Collares: 'Necklaces', Pulseras: 'Bracelets', Otros: 'Other' },
-  pt: { Aros: 'Brincos', Anillos: 'Anéis', Collares: 'Colares', Pulseras: 'Pulseiras', Otros: 'Outros' },
-  fr: { Aros: 'Boucles d’oreilles', Anillos: 'Bagues', Collares: 'Colliers', Pulseras: 'Bracelets', Otros: 'Autres' },
-};
-export const categoryLabel = (category: Category, locale: Locale) => categoryNames[locale][category];
+/** A category the owner can create: its Spanish name is the key stored on each piece, the rest are what visitors read. */
+const categorySchema = z.object({
+  es: z.string().trim().min(2).max(40),
+  en: z.string().trim().min(2).max(40),
+  pt: z.string().trim().min(2).max(40),
+  fr: z.string().trim().min(2).max(40),
+});
+export type CategoryDef = z.infer<typeof categorySchema>;
+/** The name of a category in a language; a name the list no longer holds is shown as written. */
+const categoryLabel = (category: string, locale: Locale, list: CategoryDef[]) => list.find(c => c.es === category)?.[locale] || category;
 
 const imageSchema = z.object({
   url: z.string().regex(/^\/(?:api\/photos\/[a-f0-9-]{36}|references\/(?:silver|ursula|color|nature)\.png)$/),
@@ -27,7 +28,7 @@ export const pieceSchema = z.object({
   id: z.string().uuid().optional(),
   slug: slugSchema.optional(),
   name: z.string().trim().min(2).max(100),
-  category: z.enum(categories),
+  category: z.string().trim().min(2).max(40),
   description: z.string().trim().min(10).max(4000),
   material: z.string().trim().max(150),
   size: z.string().trim().max(150).default(''),
@@ -55,14 +56,14 @@ export function uniqueSlug(base: string, taken: Iterable<string>) {
 }
 
 /** Name, description, material and size for a language, falling back to Spanish when no translation exists. */
-export function localizedPiece(piece: Piece, locale: Locale) {
+export function localizedPiece(piece: Piece, locale: Locale, list: CategoryDef[]) {
   const t = locale === 'es' ? undefined : piece.translations?.[locale];
   return {
     name: t?.name || piece.name,
     description: t?.description || piece.description,
     material: t?.material || piece.material,
     size: t?.size || piece.size,
-    category: categoryLabel(piece.category, locale),
+    category: categoryLabel(piece.category, locale, list),
   };
 }
 /** A piece page is only worth indexing in a language once its name and description are written in it. */
@@ -90,6 +91,8 @@ export const settingsSchema = textsSchema.extend({
   // Spaces, dashes and parentheses are accepted and removed: "+56 9 1234 5678" is stored as "+56912345678".
   whatsapp: z.string().trim().transform(v => v.replace(/[\s().-]/g, '')).pipe(z.string().regex(/^(\+?[0-9]{8,15})?$/)),
   showPrices: z.boolean(),
+  // The sections of the collection (earrings, rings...). Every piece belongs to one of them.
+  categories: z.array(categorySchema).min(1).max(30).refine(l => new Set(l.map(c => c.es.toLowerCase())).size === l.length, 'Hay categorías repetidas'),
   // Photos of the home page chosen by the owner. Empty means "use the featured pieces".
   images: z.object({ hero: z.array(imageSchema).max(8), about: imageSchema.nullable() }),
   policies: z.object({ es: policySchema, en: policySchema, pt: policySchema, fr: policySchema }),

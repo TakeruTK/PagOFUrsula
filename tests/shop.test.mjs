@@ -1,4 +1,4 @@
-import { test, before, after } from 'node:test';
+﻿import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
@@ -273,6 +273,23 @@ test('a piece without a translation is kept out of that language for search engi
   assert.doesNotMatch(await (await request('/fr/bijoux/solo-en-espanol')).text(), /name="robots" content="noindex, follow"/, 'writing the French text makes the French page indexable');
   assert.ok((await (await request('/sitemap.xml')).text()).includes('/fr/bijoux/solo-en-espanol'));
   assert.equal((await request(`/api/pieces?id=${id}`, { method: 'DELETE', auth: true })).status, 200);
+});
+
+// ---- Categories the owner can create ----------------------------------------------------------------------------------
+test('the owner can create categories, pieces must use one, and a category in use cannot be removed', async () => {
+  const settings = await (await request('/api/settings', { auth: true })).json();
+  assert.ok(settings.categories.some(c => c.es === 'Aros'), 'the usual categories come by default');
+  const put = body => request('/api/settings', { method: 'PUT', auth: true, body });
+  const bracelets = { es: 'Brazaletes', en: 'Cuffs', pt: 'Braceletes', fr: 'Manchettes' };
+  assert.equal((await put({ ...settings, categories: [...settings.categories, bracelets] })).status, 200);
+  const base = { ...pieces[0], id: undefined, slug: undefined, name: 'Brazalete de prueba', status: 'Publicado', price: 0, translations: { en: { name: 'Test cuff', description: 'A cuff used by the categories test.', material: '', size: '', caption: '' } } };
+  assert.equal((await request('/api/pieces', { method: 'POST', auth: true, body: { ...base, category: 'Inventada' } })).status, 400, 'a category that does not exist is refused');
+  const created = await request('/api/pieces', { method: 'POST', auth: true, body: { ...base, category: 'Brazaletes' } }); assert.equal(created.status, 200); const id = (await created.json()).id;
+  assert.match(await (await request('/en/jewelry/brazalete-de-prueba')).text() || '', /Cuffs/, 'visitors read the category in their language');
+  const without = settings.categories.filter(c => c.es !== 'Brazaletes');
+  assert.equal((await put({ ...settings, categories: without })).status, 400, 'a category with pieces cannot be removed');
+  assert.equal((await request(`/api/pieces?id=${id}`, { method: 'DELETE', auth: true })).status, 200);
+  assert.equal((await put({ ...settings, categories: without })).status, 200, 'once empty it can be removed');
 });
 
 // ---- Account ----------------------------------------------------------------------------------------------------------

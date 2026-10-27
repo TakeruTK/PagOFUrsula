@@ -35,8 +35,8 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   const dict = getDictionary(lang);
   const settings = getSettings();
   const text = textsFor(settings, lang);
-  const cards = toCards(getPieces(), lang);
-  const fallbackCover = (cards.find(p => p.featured) || cards[0] || toCards(initialPieces, lang)[0]).images[0];
+  const cards = toCards(getPieces(), lang, settings.categories);
+  const fallbackCover = (cards.find(p => p.featured) || cards[0] || toCards(initialPieces, lang, settings.categories)[0]).images[0];
   // The owner can pick the home photos in the workshop; without a choice the featured pieces are used.
   const chosen = settings.images.hero;
   const sceneImages = chosen.length ? chosen : [...cards.filter(p => p.featured), ...cards.filter(p => !p.featured)].slice(0, 8).map(p => p.images[0]);

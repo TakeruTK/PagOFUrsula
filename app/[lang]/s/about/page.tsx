@@ -29,8 +29,8 @@ export default async function AboutPage({ params }: Props) {
   const settings = getSettings();
   const text = textsFor(settings, lang);
   const paragraphs = text.story.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
-  const cards = toCards(getPieces(), lang);
-  const photo = settings.images.about || (cards[1] || cards[0] || toCards(initialPieces, lang)[1]).images[0];
+  const cards = toCards(getPieces(), lang, settings.categories);
+  const photo = settings.images.about || (cards[1] || cards[0] || toCards(initialPieces, lang, settings.categories)[1]).images[0];
   const about = { '@context': 'https://schema.org', '@type': 'AboutPage', name: dict.pages.about.metaTitle, url: absolute(pagePath(lang, 'about')), inLanguage: lang, about: { '@id': absolute('/#organization') } };
   return <main>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd([about, breadcrumbs([{ name: dict.nav.home, path: homePath(lang) }, { name: dict.nav.about, path: pagePath(lang, 'about') }])]) }} />

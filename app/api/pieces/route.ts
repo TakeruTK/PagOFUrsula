@@ -1,4 +1,4 @@
-import { database,getPieces } from '@/lib/store';
+import { database,getPieces,getSettings } from '@/lib/store';
 import { protect } from '@/lib/admin-auth';
 import { pieceSchema, uniqueSlug } from '@/lib/pieces';
 import { jsonBody,invalid } from '@/lib/http';
@@ -12,6 +12,7 @@ async function save(request:Request,update:boolean){
     const parsed=pieceSchema.safeParse(await jsonBody(request));
     if(!parsed.success)return Response.json({error:'Revisa los campos: '+parsed.error.issues[0].path.join('.')+' — '+parsed.error.issues[0].message},{status:400});
     const p=parsed.data,id=update?p.id:crypto.randomUUID();
+    if(!getSettings().categories.some(c=>c.es===p.category))return Response.json({error:'Esa categoría no existe. Créala primero en Categorías.'},{status:400});
     if(!id)return Response.json({error:'Falta la pieza.'},{status:400});
     const others=getPieces(true).filter(x=>x.id!==id);
     const current=update?getPieces(true).find(x=>x.id===id):undefined;

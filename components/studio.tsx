@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpRight, Check, CheckCircle2, Circle, Copy, FileText, Home, ImagePlus, Images, KeyRound, LayoutDashboard, LogOut, Package, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
-import { categories, slugify, type Photo as PhotoType, type Piece, type Settings } from '@/lib/pieces';
+import { slugify, type Photo as PhotoType, type Piece, type Settings } from '@/lib/pieces';
 import { locales, nativeName, type Locale } from '@/lib/i18n';
 import type { StoreStatus } from '@/lib/status';
 import { Brand } from './brand';
@@ -18,7 +18,7 @@ type Other = Exclude<Locale, 'es'>;
 const others = locales.filter((l): l is Other => l !== 'es');
 const freshTranslations = () => Object.fromEntries(others.map(l => [l, { ...emptyT }])) as Draft['translations'];
 const filled = (d: Draft, l: Locale) => l === 'es' || !!(d.translations?.[l]?.name && d.translations?.[l]?.description);
-const blank = (): Draft => ({ name: '', category: 'Aros', description: '', material: '', size: '', price: 0, order: 0, featured: false, status: 'Borrador', availability: 'Disponible', images: [], translations: freshTranslations() });
+const blank = (): Draft => ({ name: '', category: '', description: '', material: '', size: '', price: 0, order: 0, featured: false, status: 'Borrador', availability: 'Disponible', images: [], translations: freshTranslations() });
 const TABS: [Tab, string, React.ReactNode][] = [
   ['summary', 'Resumen', <LayoutDashboard size={19} key="a" />], ['pieces', 'Mis piezas', <Package size={19} key="b" />], ['images', 'Fotos del inicio', <Images size={19} key="f" />], ['store', 'Mi página', <Home size={19} key="c" />],
   ['policies', 'Políticas', <FileText size={19} key="d" />], ['security', 'Seguridad', <KeyRound size={19} key="e" />],
@@ -55,7 +55,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   const refreshPieces = async () => setPieces(await api('/api/pieces'));
   const refreshStatus = async () => setStatus(await api('/api/admin/status'));
   function edit(piece?: Piece, copy = false) {
-    const base = piece ? structuredClone(piece) : { ...blank(), order: pieces.length };
+    const base = piece ? structuredClone(piece) : { ...blank(), order: pieces.length, category: settings.categories[0].es };
     if (copy && piece) { delete (base as Draft).id; delete (base as Draft).slug; base.name = `${piece.name} (copia)`; base.status = 'Borrador'; base.featured = false; }
     base.translations = Object.fromEntries(others.map(l => [l, { ...emptyT, ...(base.translations?.[l] || {}) }])) as Draft['translations'];
     setDraft(base); setEditLang('es'); setError(''); setMessage(''); setEditing(true);
@@ -144,6 +144,24 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
         </>}
 
         {tab === 'pieces' && <>
+          <details className="settings-card category-editor">
+            <summary><strong>Categorías del filtro</strong> · {settings.categories.map(c => c.es).join(', ')}</summary>
+            <form onSubmit={e => saveSettings(e, 'Las categorías quedaron guardadas.')}>
+              <p className="field-help">Estas son las secciones que ven tus visitas para filtrar la colección (aros, anillos, collares…). Agrega las que necesites; si una categoría no tiene piezas en un idioma, no aparece allí. Para quitar una, primero cambia de categoría sus piezas.</p>
+              {settings.categories.map((c, i) => {
+                const inUse = pieces.some(p => p.category === c.es);
+                const set = (patch: Partial<typeof c>) => setSettings(s => ({ ...s, categories: s.categories.map((x, n) => n === i ? { ...x, ...patch } : x) }));
+                return <div className="category-row" key={i}>
+                  {locales.map(l => <label className="field" key={l}>{nativeName[l]}<input required minLength={2} maxLength={40} lang={l} disabled={l === 'es' && inUse} title={l === 'es' && inUse ? 'Tiene piezas: el nombre en español no se puede cambiar.' : undefined} value={c[l]} onChange={e => set({ [l]: e.target.value })} /></label>)}
+                  <button type="button" className="button small ghost" disabled={inUse || settings.categories.length < 2} title={inUse ? 'Tiene piezas' : 'Quitar categoría'} onClick={() => setSettings(s => ({ ...s, categories: s.categories.filter((_, n) => n !== i) }))}><Trash2 size={15} /> Quitar</button>
+                </div>;
+              })}
+              <div className="row-actions">
+                <button type="button" className="button small ghost" disabled={settings.categories.length >= 30} onClick={() => setSettings(s => ({ ...s, categories: [...s.categories, { es: '', en: '', pt: '', fr: '' }] }))}><Plus size={15} /> Agregar categoría</button>
+                <button className="button small" disabled={busy}>Guardar categorías</button>
+              </div>
+            </form>
+          </details>
           <div className="studio-filters">
             <label><Search size={17} /><input aria-label="Buscar piezas" placeholder="Buscar una pieza…" value={filter} onChange={e => setFilter(e.target.value)} /></label>
             <select aria-label="Filtrar por visibilidad" value={visibility} onChange={e => setVisibility(e.target.value)}><option>Todas</option><option>Publicado</option><option>Borrador</option></select>
@@ -273,7 +291,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
               <label className="field">Nombre de la pieza<input required minLength={2} maxLength={100} value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} /></label>
               <label className="field">Dirección en internet (slug)<input maxLength={80} placeholder={slugify(draft.name) || 'se genera sola'} pattern="[a-z0-9]+(-[a-z0-9]+)*" value={draft.slug || ''} onChange={e => setDraft({ ...draft, slug: e.target.value.toLowerCase() })} /><small>Aparece en el enlace de la pieza. Déjalo vacío para generarlo desde el nombre; no lo cambies si ya compartiste el enlace.</small></label>
               <div className="form-row">
-                <label className="field">Categoría<select value={draft.category} onChange={e => setDraft({ ...draft, category: e.target.value as Piece['category'] })}>{categories.map(c => <option key={c}>{c}</option>)}</select></label>
+                <label className="field">Categoría<select value={draft.category} onChange={e => setDraft({ ...draft, category: e.target.value })}>{settings.categories.filter(c => c.es).map(c => <option key={c.es}>{c.es}</option>)}</select><small>¿Necesitas otra? Créala en «Categorías» de Mis piezas.</small></label>
                 <label className="field">Disponibilidad<select value={draft.availability} onChange={e => setDraft({ ...draft, availability: e.target.value as Piece['availability'] })}><option>Disponible</option><option>Por encargo</option><option>Vendido</option></select></label>
               </div>
               <label className="field">Historia y descripción<textarea required minLength={10} maxLength={4000} rows={4} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })} /></label>

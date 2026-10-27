@@ -51,6 +51,7 @@ Cada pieza lleva un botón **Consultar por WhatsApp** que abre la conversación 
 - `canonical`, `hreflang` (es, en, pt, fr, x-default; solo los idiomas en que la página existe de verdad), Open Graph y Twitter por página; imagen social generada.
 - JSON-LD: Organization, WebSite, Product y BreadcrumbList (el precio solo se publica si la clienta decide mostrarlo).
 - `sitemap.xml` con las versiones de idioma de cada página (y fotos para Google Imágenes) y `robots.txt` dinámico.
+- Las categorías del filtro (aros, anillos, pulseras…) las crea y traduce la clienta en Mis piezas → Categorías.
 - El panel permite escribir nombre, descripción, materiales, tamaño y descripción de foto en cada idioma. Una pieza sin traducir no se lista en ese idioma y su página va con `noindex`, para no duplicar el texto en español.
 - Verificación de buscadores: `GOOGLE_SITE_VERIFICATION` y `BING_SITE_VERIFICATION` (códigos de Search Console y Bing Webmaster).
 - Los textos en portugués y francés de la historia de la artesana fueron traducidos por nosotros: conviene que ella los revise.

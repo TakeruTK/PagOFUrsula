@@ -25,7 +25,7 @@ export default async function CollectionPage({ params }: Props) {
   const dict = getDictionary(lang);
   const settings = getSettings();
   const text = textsFor(settings, lang);
-  const cards = toCards(getPieces(), lang);
+  const cards = toCards(getPieces(), lang, settings.categories);
   const list = {
     '@context': 'https://schema.org', '@type': 'CollectionPage', name: dict.pages.collection.metaTitle, url: absolute(pagePath(lang, 'collection')), inLanguage: lang,
     mainEntity: { '@type': 'ItemList', itemListElement: cards.map((c, i) => ({ '@type': 'ListItem', position: i + 1, url: absolute(piecePath(lang, c.slug)), name: c.name })) },
@@ -38,7 +38,7 @@ export default async function CollectionPage({ params }: Props) {
       <p>{dict.pages.collection.intro}</p>
     </header>
     <section className="pieces" aria-label={text.collectionTitle}>
-      <PiecesGrid cards={cards} lang={lang} dict={dict} showPrices={settings.showPrices} />
+      <PiecesGrid cards={cards} categories={settings.categories} lang={lang} dict={dict} showPrices={settings.showPrices} />
     </section>
     <Cta lang={lang} dict={dict} settings={settings} />
   </main>;
