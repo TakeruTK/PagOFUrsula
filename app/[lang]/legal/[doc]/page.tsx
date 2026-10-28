@@ -27,7 +27,7 @@ export default async function Legal({ params }: Props) {
   return <main className="doc">
     <p className="eyebrow">{dict.site.name}</p>
     <h1>{dict.legal[doc]}</h1>
-    {blocks.length ? blocks.map((block, i) => <p key={i}>{block.split('\n').map((line, j) => <span key={j}>{line}<br /></span>)}</p>) : <p>{dict.legal.empty}</p>}
+    {blocks.length ? blocks.map((block, i) => <section key={i}>{block.split('\n').map((line, j) => line.startsWith('## ') ? <h2 key={j}>{line.slice(3)}</h2> : <p key={j}>{line}</p>)}</section>) : <p>{dict.legal.empty}</p>}
     {settings.contactEmail && <p><strong>{dict.legal.contact}:</strong> <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a></p>}
   </main>;
 }

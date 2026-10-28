@@ -42,6 +42,17 @@ export async function translateSettings(settings: Settings): Promise<Outcome<Set
       next[l] = { headline, introduction, story, collectionTitle, auto: mark };
     } catch { failed.push(l); }
   }));
+  const policySource = [settings.policies.es.terms, settings.policies.es.privacy];
+  const policyMark = fingerprint(policySource);
+  const policies = { ...settings.policies };
+  await Promise.all(targets.map(async l => {
+    const current = settings.policies[l];
+    if (!needsWork(current, !!(current.terms && current.privacy), policyMark)) return;
+    try {
+      const [terms, privacy] = await translateTexts(policySource, l);
+      policies[l] = { terms, privacy, auto: policyMark };
+    } catch { failed.push(l); }
+  }));
   const categories: CategoryDef[] = await Promise.all(settings.categories.map(async category => {
     const mark = fingerprint([category.es]);
     const result = { ...category, auto: mark };
@@ -50,5 +61,5 @@ export async function translateSettings(settings: Settings): Promise<Outcome<Set
     }));
     return result;
   }));
-  return { value: { ...next, categories }, failed: [...new Set(failed)] };
+  return { value: { ...next, policies, categories }, failed: [...new Set(failed)] };
 }

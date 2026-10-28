@@ -76,6 +76,7 @@ export const isTranslated = (piece: Piece, locale: Locale) => locale === 'es' ||
 const policySchema = z.object({
   terms: z.string().max(20000),
   privacy: z.string().max(20000),
+  auto: z.string().max(40).optional(),
 });
 const optionalProfile = (pattern: RegExp) => z.union([z.literal(''), z.string().trim().url().regex(pattern)]);
 const textsSchema = z.object({

@@ -23,7 +23,7 @@ export function storeStatus() {
     // Search engines only index a page in a language once it is written in that language.
     { id: 'translations', ok: missing.length === 0, label: 'Piezas traducidas a todos los idiomas', hint: missing.length ? `Faltan traducciones: ${missing.join(' · ')}. Pulsa «Traducir todo» en Mis piezas (se traducen solas desde el español); sin ellas la pieza no aparece en Google en ese idioma.` : '' },
     { id: 'contact', ok: !!settings.contactEmail, label: 'Correo de contacto', hint: 'Se muestra como alternativa de contacto en la página.' },
-    { id: 'policies', ok: JSON.stringify(settings.policies) !== JSON.stringify(initialSettings.policies), label: 'Condiciones y privacidad revisadas', hint: 'Los textos legales son borradores. Revísalos en “Políticas”.' },
+    { id: 'policies', ok: JSON.stringify(settings.policies) !== JSON.stringify(initialSettings.policies), label: 'Condiciones y privacidad revisadas', hint: 'Aún están los textos de ejemplo. Edítalos en “Políticas”.' },
     { id: 'domain', ok: isHttps() && !site.includes('127.0.0.1') && !site.includes('localhost'), label: 'Dirección pública con HTTPS', hint: 'Define SITE_URL con el dominio .com definitivo.' },
     { id: 'indexing', ok: allowIndexing(), label: 'Visible para Google', hint: 'Cuando la clienta apruebe la página, define ALLOW_INDEXING=true.' },
   ];

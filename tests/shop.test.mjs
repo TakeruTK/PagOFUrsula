@@ -254,7 +254,7 @@ test('Portuguese and French are negotiated, routed and fully served like Spanish
   }
   assert.match(await (await request(`/pt/joias/${pieces[0].slug}`)).text(), /<h1>Brincos Sendero<\/h1>/);
   assert.match(await (await request(`/fr/bijoux/${pieces[0].slug}`)).text(), /<h1>Boucles d’oreilles Sendero<\/h1>/);
-  assert.match(await (await request('/fr/conditions')).text(), /Conditions des demandes et des achats/); assert.match(await (await request('/pt/privacidade')).text(), /Política de privacidade/);
+  assert.match(await (await request('/fr/conditions')).text(), /<h2>Comment acheter<\/h2>/); assert.match(await (await request('/pt/privacidade')).text(), /Política de privacidade/);
   const switcher = await (await request('/pt/colecao')).text();
   for (const target of ['/es/coleccion', '/en/collection', '/fr/collection']) assert.ok(switcher.includes(`href="${target}"`), `the language switcher goes to ${target}`);
   assert.ok((await (await request(`/fr/bijoux/${pieces[0].slug}`)).text()).includes(`href="/en/jewelry/${pieces[0].slug}"`), 'pieces keep their address across languages');
