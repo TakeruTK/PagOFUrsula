@@ -12,6 +12,7 @@
     "start": "next start --hostname 127.0.0.1 --port 3002",
     "typecheck": "tsc --noEmit",
     "admin:setup": "node scripts/setup-admin.mjs",
+    "db:production": "node scripts/prepare-production-db.mjs",
     "test": "node --test tests/shop.test.mjs"
   },
   "dependencies": {

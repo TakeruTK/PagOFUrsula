@@ -62,6 +62,15 @@ Antes de abrir al público: define `SITE_URL` (https), sube fotografías reales,
 
 `/admin`: resumen con lista de lanzamiento; piezas (fotos, slug, idiomas, duplicar, borrador/publicado, orden, portada); textos de la página en los cuatro idiomas; contacto; condiciones y privacidad; cambio de contraseña.
 
+## Puesta en producción
+
+1. **Servidor con disco persistente** y Node 24: la base (`ursula.sqlite`) guarda piezas, textos y fotos. No sirve un hosting sin disco (tipo funciones serverless) porque las fotos y los cambios de la clienta se perderían.
+2. **Contenido real**: `pnpm db:production` crea `data/production/ursula.sqlite` (solo piezas publicadas, sin sesiones ni contraseñas). Súbelo a la carpeta que uses como `DATA_DIR`. Si el servidor arranca sin esa base, mostrará las piezas de ejemplo.
+3. **Variables de entorno**: `SITE_URL=https://ursulaalcainoorfebreria.com`, `DATA_DIR`, `ALLOW_INDEXING=true` (solo cuando la clienta apruebe), `TRUST_PROXY=true` si hay un proxy/CDN delante (límite de intentos de login por visitante), `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `ANTHROPIC_API_KEY` (mejor traducción automática).
+4. **Acceso al taller**: en el servidor, `pnpm admin:setup` y guardar la contraseña que muestra.
+5. **Arranque**: `pnpm build && pnpm start -- --hostname 0.0.0.0` detrás de HTTPS.
+6. **Respaldo**: copiar `DATA_DIR/ursula.sqlite` (y sus archivos `-wal`/`-shm`) a diario.
+
 ## Validación
 
 ```sh

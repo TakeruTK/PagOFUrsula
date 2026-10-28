@@ -50,7 +50,12 @@ export function createSession(){
   return cookie(t,8*3600);
 }
 export function destroySession(request:Request){database().prepare('DELETE FROM sessions WHERE token=?').run(digest(token(request.headers)));return cookie('',0);}
-export function loginAttempt(){return withinBudget('login',8,15*60000);}
+/**
+ * Failed logins are limited to 8 per 15 minutes. Behind a trusted proxy (TRUST_PROXY=true) the budget is per visitor,
+ * so a stranger guessing passwords cannot lock the owner out; without one it is shared, since headers cannot be trusted.
+ */
+export const loginKey=(request:Request)=>'login:'+(process.env.TRUST_PROXY==='true'?request.headers.get('x-forwarded-for')?.split(',')[0].trim().slice(0,45)||'unknown':'all');
+export function loginAttempt(request:Request){return withinBudget(loginKey(request),8,15*60000);}
 export async function protect(request:Request){
   if(!await hasAdminSession(request))return Response.json({error:'Inicia sesión para administrar el taller.'},{status:401});
   if(!['GET','HEAD'].includes(request.method)&&!sameOrigin(request))return Response.json({error:'Solicitud no permitida.'},{status:403});
