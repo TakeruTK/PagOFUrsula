@@ -8,7 +8,7 @@ if(/ADMIN_PASSWORD_HASH=pbkdf2/.test(content)&&!process.argv.includes('--reset')
 const username='ursula';
 const password=randomBytes(15).toString('base64url');
 const salt=randomBytes(16).toString('hex');
-const hash=pbkdf2Sync(password,salt,100000,32,'sha256').toString('hex');
+const hash=pbkdf2Sync(password,salt,600000,32,'sha256').toString('hex');
 content=content.split('\n').filter(line=>!/^ADMIN_(USERNAME|PASSWORD_HASH)=/.test(line)).join('\n').trim();
-writeFileSync(file,content+`\nADMIN_USERNAME=${username}\nADMIN_PASSWORD_HASH=pbkdf2-sha256:100000:${salt}:${hash}\n`,{mode:0o600});
+writeFileSync(file,content+`\nADMIN_USERNAME=${username}\nADMIN_PASSWORD_HASH=pbkdf2-sha256:600000:${salt}:${hash}\n`,{mode:0o600});
 console.log(`Administrador local configurado.\nUsuario: ${username}\nContraseña: ${password}\nGuarda la contraseña. Reinicia el servidor si ya estaba abierto.`);

@@ -69,7 +69,8 @@ Antes de abrir al público: define `SITE_URL` (https), sube fotografías reales,
 3. **Variables de entorno**: `SITE_URL=https://ursulaalcainoorfebreria.com`, `DATA_DIR`, `ALLOW_INDEXING=true` (solo cuando la clienta apruebe), `TRUST_PROXY=true` si hay un proxy/CDN delante (límite de intentos de login por visitante), `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `DEEPL_API_KEY` o `GOOGLE_TRANSLATE_API_KEY` (traducción automática confiable, gratis hasta 500.000 caracteres al mes).
 4. **Acceso al taller**: en el servidor, `pnpm admin:setup` y guardar la contraseña que muestra.
 5. **Arranque**: `pnpm build && pnpm start -- --hostname 0.0.0.0` detrás de HTTPS.
-6. **Respaldo**: copiar `DATA_DIR/ursula.sqlite` (y sus archivos `-wal`/`-shm`) a diario.
+6. **Respaldo**: el sitio guarda solo una copia diaria (las últimas 7) en `DATA_DIR/backups`. Copia esa carpeta a otro lugar con regularidad: si se pierde el disco, se pierden también los respaldos.
+7. **Fotos**: se reducen solas en el navegador (máximo 1800 px, WebP) y el servidor las limita a 2 MB cada una, 6 por pieza, 6 en la portada y 150 MB en total (`PHOTO_STORAGE_MB` lo cambia). Las fotos sin uso se borran solas después de un día.
 
 ## Validación
 

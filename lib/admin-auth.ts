@@ -1,11 +1,14 @@
 // Adapted from PagOf: PBKDF2 credentials, revocable server sessions and same-origin writes.
 import { createHash, pbkdf2Sync, randomBytes, timingSafeEqual } from 'node:crypto';
 import { headers } from 'next/headers';
+import { backupIfDue } from './backup';
 import { withinBudget } from './http';
 import { database } from './store';
 const COOKIE='ursula_taller';
 const digest=(s:string)=>createHash('sha256').update(s).digest('hex');
-const HASH=/^pbkdf2-sha256:100000:[a-f0-9]{32}:[a-f0-9]{64}$/;
+// 600,000 rounds for new passwords; hashes made with the earlier 100,000 keep working until the password changes.
+const ROUNDS=600000;
+const HASH=/^pbkdf2-sha256:(?:100000|600000):[a-f0-9]{32}:[a-f0-9]{64}$/;
 // A password changed from the panel (stored in the database) takes precedence over the one in .env.local.
 function credentials(){
   const row=database().prepare('SELECT username,hash FROM admin_credentials WHERE id=1').get() as {username:string;hash:string}|undefined;
@@ -13,12 +16,12 @@ function credentials(){
 }
 const version=()=>{const c=credentials();return digest(`${c.username}:${c.hash}`);};
 export function configured(){const c=credentials();return !!c.username&&HASH.test(c.hash);}
-function hashPassword(password:string){const salt=randomBytes(16).toString('hex');return `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password,salt,100000,32,'sha256').toString('hex')}`;}
+function hashPassword(password:string){const salt=randomBytes(16).toString('hex');return `pbkdf2-sha256:${ROUNDS}:${salt}:${pbkdf2Sync(password,salt,ROUNDS,32,'sha256').toString('hex')}`;}
 export function verifyCredentials(username:string,password:string){
   if(!configured())return false;
   const c=credentials();
-  const [,,salt,expected]=c.hash.split(':');
-  const actual=pbkdf2Sync(password,salt,100000,32,'sha256');
+  const [,rounds,salt,expected]=c.hash.split(':');
+  const actual=pbkdf2Sync(password,salt,Number(rounds),32,'sha256');
   return timingSafeEqual(actual,Buffer.from(expected,'hex'))&&username===c.username;
 }
 /** Verifies the current password, stores the new one and revokes every session (including this one). */
@@ -58,6 +61,9 @@ export const loginKey=(request:Request)=>'login:'+(process.env.TRUST_PROXY==='tr
 export function loginAttempt(request:Request){return withinBudget(loginKey(request),8,15*60000);}
 export async function protect(request:Request){
   if(!await hasAdminSession(request))return Response.json({error:'Inicia sesión para administrar el taller.'},{status:401});
-  if(!['GET','HEAD'].includes(request.method)&&!sameOrigin(request))return Response.json({error:'Solicitud no permitida.'},{status:403});
+  if(!['GET','HEAD'].includes(request.method)){
+    if(!sameOrigin(request))return Response.json({error:'Solicitud no permitida.'},{status:403});
+    backupIfDue();
+  }
   return null;
 }

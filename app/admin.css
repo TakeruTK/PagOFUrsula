@@ -198,3 +198,5 @@ h1,h2,h3{font-family:var(--serif);font-weight:400}
 .row-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
 @media(max-width:900px){.category-row{grid-template-columns:1fr 1fr}.category-row .button{grid-column:1/-1;justify-self:start}}
 .translations{margin:6px 0 18px;padding:14px 16px;border:1px solid var(--line,rgba(0,0,0,.14))}.translations summary{cursor:pointer;font-size:15px}.translations[open] summary{margin-bottom:12px}
+.meter{width:100%;height:10px;accent-color:var(--olive,#272b00)}
+.admin-actions{flex-wrap:wrap}

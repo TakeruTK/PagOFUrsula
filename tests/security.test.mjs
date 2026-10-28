@@ -12,26 +12,31 @@ import path from 'node:path';
 const port = 3031, base = `http://127.0.0.1:${port}`;
 const username = 'sec-atelier', password = randomBytes(20).toString('hex'), salt = randomBytes(16).toString('hex');
 const hash = `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex')}`;
-let server, cookie = '', output = '', dataDir;
+let server, small, cookie = '', output = '', dataDir;
 
 const send = (url, { method = 'GET', body, auth = false, origin = base, headers = {}, raw } = {}) => fetch(base + url, {
   method, redirect: 'manual',
   headers: { ...(method !== 'GET' && method !== 'HEAD' ? { Origin: origin } : {}), ...(body && !raw ? { 'Content-Type': 'application/json' } : {}), ...(auth ? { Cookie: cookie } : {}), ...headers },
   body: raw ?? (body ? JSON.stringify(body) : undefined),
 });
-const ready = async () => { const end = Date.now() + 60000; while (Date.now() < end) { try { if ((await fetch(base + '/es')).ok) return; } catch { /* starting */ } await new Promise(r => setTimeout(r, 300)); } assert.fail(output); };
 
+const start = async (serverPort, env, dir) => {
+  const child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(serverPort)], {
+    cwd: process.cwd(), windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, SITE_URL: 'https://ursulaalcainoorfebreria.com', ALLOW_INDEXING: 'true', ADMIN_USERNAME: username, ADMIN_PASSWORD_HASH: hash, DATA_DIR: dir, ANTHROPIC_API_KEY: '', DEEPL_API_KEY: '', GOOGLE_TRANSLATE_API_KEY: '', TRANSLATE_URL: 'http://127.0.0.1:9/', ...env },
+  });
+  child.stdout.on('data', d => output += d); child.stderr.on('data', d => output += d);
+  const end = Date.now() + 60000;
+  for (;;) { try { if ((await fetch(`http://127.0.0.1:${serverPort}/es`)).ok) return child; } catch { /* starting */ } if (Date.now() > end) assert.fail(output); await new Promise(r => setTimeout(r, 300)); }
+};
 before(async () => {
   mkdirSync('test-results', { recursive: true });
   dataDir = mkdtempSync(path.resolve('test-results', 'security-'));
-  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], {
-    cwd: process.cwd(), windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, SITE_URL: 'https://ursulaalcainoorfebreria.com', ALLOW_INDEXING: 'true', ADMIN_USERNAME: username, ADMIN_PASSWORD_HASH: hash, DATA_DIR: dataDir, ANTHROPIC_API_KEY: '', TRANSLATE_URL: 'http://127.0.0.1:9/' },
-  });
-  server.stdout.on('data', d => output += d); server.stderr.on('data', d => output += d);
-  await ready();
+  server = await start(port, {}, dataDir);
 });
-after(async () => { if (server?.exitCode === null) { server.kill(); await Promise.race([once(server, 'exit'), new Promise(r => setTimeout(r, 3000))]); } });
+after(async () => {
+  for (const child of [server, small]) if (child?.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
+});
 const login = async () => { const r = await send('/api/admin/login', { method: 'POST', body: { username, password } }); assert.equal(r.status, 200); cookie = r.headers.get('set-cookie').split(';')[0]; return r; };
 
 const piece = (over = {}) => ({ name: 'Pieza segura', category: 'Aros', description: 'Una pieza usada por las pruebas de seguridad.', material: 'Plata 950', size: '', price: 0, status: 'Publicado', availability: 'Disponible', order: 0, featured: false, images: [{ url: '/references/silver.png', caption: 'foto' }], ...over });
@@ -110,7 +115,7 @@ test('uploads accept only real JPG, PNG and WebP and nothing else', async () => 
   assert.equal((await upload(Buffer.from('<html><script>alert(1)</script></html>'), 'image/png')).status, 400, 'HTML disguised as PNG');
   assert.equal((await upload(Buffer.from('GIF89a' + 'x'.repeat(50)), 'image/gif')).status, 400, 'GIF');
   assert.equal((await upload(Buffer.alloc(0), 'image/png')).status, 400, 'empty file');
-  assert.equal((await upload(Buffer.concat([png, Buffer.alloc(7 * 1024 * 1024)]), 'image/png')).status, 413, 'more than 6 MB');
+  assert.equal((await upload(Buffer.concat([png, Buffer.alloc(3 * 1024 * 1024)]), 'image/png')).status, 413, 'more than 2 MB');
   const form = new FormData(); form.append('other', 'x'); assert.equal((await fetch(base + '/api/photos', { method: 'POST', headers: { Origin: base, Cookie: cookie }, body: form })).status, 400, 'no file field');
 });
 
@@ -186,6 +191,7 @@ test('logout and password change revoke sessions; a stolen cookie stops working'
   assert.equal((await send('/api/pieces', { auth: true })).status, 401, 'password change revokes the session');
   assert.equal((await send('/api/admin/login', { method: 'POST', body: { username, password } })).status, 401, 'old password no longer works');
   assert.equal((await send('/api/admin/login', { method: 'POST', body: { username, password: 'una-clave-nueva-muy-larga-1' } })).status, 200, 'new password works');
+  const stored = new DatabaseSync(path.join(dataDir, 'ursula.sqlite'), { readOnly: true }); assert.match(stored.prepare('SELECT hash FROM admin_credentials').get().hash, /^pbkdf2-sha256:600000:/, 'new passwords use 600,000 rounds'); stored.close();
 });
 
 test('the public site survives a burst of traffic without errors', async () => {
@@ -194,4 +200,26 @@ test('the public site survives a burst of traffic without errors', async () => {
   const results = await Promise.all(Array.from({ length: 160 }, (_, i) => send(urls[i % urls.length]).then(async r => { await r.text(); return r.status; })));
   assert.ok(results.every(s => s === 200), `statuses: ${[...new Set(results)]}`);
   assert.ok(Date.now() - started < 15000, `took ${Date.now() - started} ms`);
+});
+
+test('photo limits: size, total space and automatic cleanup of unused uploads', async () => {
+  const dir = mkdtempSync(path.resolve('test-results', 'limits-'));
+  small = await start(3032, { PHOTO_STORAGE_MB: '1', SITE_URL: 'http://127.0.0.1:3032' }, dir);
+  const host = 'http://127.0.0.1:3032';
+  const session = await fetch(host + '/api/admin/login', { method: 'POST', headers: { Origin: host, 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+  const headers = { Origin: host, Cookie: session.headers.get('set-cookie').split(';')[0] };
+  const png = size => Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), randomBytes(size)]);
+  const up = bytes => { const form = new FormData(); form.append('file', new Blob([bytes], { type: 'image/png' }), 'a.png'); return fetch(host + '/api/photos', { method: 'POST', headers, body: form }); };
+  const first = await up(png(600 * 1024)); assert.equal(first.status, 200);
+  const second = await up(png(600 * 1024)); assert.equal(second.status, 400); assert.match((await second.json()).error, /límite de espacio/);
+  const status = await (await fetch(host + '/api/admin/status', { headers })).json();
+  assert.equal(status.photos.count, 1); assert.ok(status.photos.bytes > 600 * 1024 && status.photos.limit === 1024 * 1024, JSON.stringify(status.photos));
+  // An upload nobody uses is removed once it is a day old, which frees the space.
+  const db = new DatabaseSync(path.join(dir, 'ursula.sqlite')); db.prepare('UPDATE photos SET created=?').run(Date.now() - 2 * 24 * 3600000); db.close();
+  assert.equal((await up(png(600 * 1024))).status, 200, 'old unused photo was purged to make room');
+  const after = await (await fetch(host + '/api/admin/status', { headers })).json(); assert.equal(after.photos.count, 1);
+  // The owner's writes leave a daily backup that opens as a database.
+  const { readdirSync } = await import('node:fs');
+  const backups = readdirSync(path.join(dir, 'backups')); assert.equal(backups.length, 1); assert.match(backups[0], /^ursula-\d{4}-\d{2}-\d{2}\.sqlite$/);
+  const copy = new DatabaseSync(path.join(dir, 'backups', backups[0]), { readOnly: true }); assert.ok(copy.prepare('SELECT count(*) c FROM pieces').get().c > 0); copy.close();
 });

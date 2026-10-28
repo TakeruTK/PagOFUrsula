@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Locale } from './i18n';
+import { HOME_PHOTOS, PHOTOS_PER_PIECE } from './limits';
 /** A category the owner can create: its Spanish name is the key stored on each piece, the rest are what visitors read. */
 const categorySchema = z.object({
   es: z.string().trim().min(2).max(40),
@@ -41,7 +42,7 @@ export const pieceSchema = z.object({
   availability: z.enum(['Disponible', 'Por encargo', 'Vendido']),
   order: z.number().int().min(0).max(10000),
   featured: z.boolean(),
-  images: z.array(imageSchema).min(1).max(8),
+  images: z.array(imageSchema).min(1).max(PHOTOS_PER_PIECE),
   // Spanish is the base text; every other language is optional and, when missing, the page is not indexed.
   translations: z.object({ en: translationSchema.optional(), pt: translationSchema.optional(), fr: translationSchema.optional() }).optional(),
 });
@@ -100,7 +101,7 @@ export const settingsSchema = textsSchema.extend({
   // The sections of the collection (earrings, rings...). Every piece belongs to one of them.
   categories: z.array(categorySchema).min(1).max(30).refine(l => new Set(l.map(c => c.es.toLowerCase())).size === l.length, 'Hay categorías repetidas'),
   // Photos of the home page chosen by the owner. Empty means "use the featured pieces".
-  images: z.object({ hero: z.array(imageSchema).max(8), about: imageSchema.nullable() }),
+  images: z.object({ hero: z.array(imageSchema).max(HOME_PHOTOS), about: imageSchema.nullable() }),
   policies: z.object({ es: policySchema, en: policySchema, pt: policySchema, fr: policySchema }),
 });
 export type Settings = z.infer<typeof settingsSchema>;

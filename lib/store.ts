@@ -4,6 +4,7 @@ import path from 'node:path';
 import { initialPieces, initialSettings } from './seed';
 import { settingsSchema, uniqueSlug, type Piece, type Settings } from './pieces';
 const dataDir = path.resolve(process.env.DATA_DIR || path.join(process.cwd(), 'data'));
+export const dataPath = () => dataDir;
 const globalStore = globalThis as typeof globalThis & { ursulaDb?: DatabaseSync };
 
 export function database() {
@@ -18,6 +19,8 @@ export function database() {
     CREATE TABLE IF NOT EXISTS photos (id TEXT PRIMARY KEY, type TEXT NOT NULL, bytes BLOB NOT NULL);
     CREATE TABLE IF NOT EXISTS admin_credentials (id INTEGER PRIMARY KEY CHECK (id=1), username TEXT NOT NULL, hash TEXT NOT NULL);
   `);
+  // Photos remember when they were uploaded so unused ones can be cleaned up after a day.
+  if (!db.prepare('PRAGMA table_info(photos)').all().some(c => c.name === 'created')) db.exec('ALTER TABLE photos ADD COLUMN created INTEGER');
   // Tables of the removed online-payment shop. Databases created by that version still carry them.
   db.exec('DROP TABLE IF EXISTS orders; DROP TABLE IF EXISTS webhook_events;');
   if (!db.prepare('SELECT id FROM settings WHERE id=1').get()) {
@@ -66,4 +69,22 @@ export function getSettings(): Settings {
   const stored = JSON.parse(database().prepare('SELECT content FROM settings WHERE id=1').get()!.content as string);
   const parsed = settingsSchema.safeParse(merge(initialSettings, stored));
   return parsed.success ? parsed.data : initialSettings;
+}
+
+/** Photos in use by any piece (drafts included) or by the home page. */
+function usedPhotoIds(db: DatabaseSync) {
+  const used = new Set<string>();
+  const collect = (text: string) => { for (const m of text.matchAll(/\/api\/photos\/([a-f0-9-]{36})/g)) used.add(m[1]); };
+  for (const row of db.prepare('SELECT content FROM pieces').all()) collect(row.content as string);
+  for (const row of db.prepare('SELECT content FROM settings').all()) collect(row.content as string);
+  return used;
+}
+/** Removes uploads nobody uses (removed from a piece, or never saved) once they are more than a day old. */
+export function purgeUnusedPhotos() {
+  const db = database(), used = usedPhotoIds(db), limit = Date.now() - 24 * 3600000;
+  for (const row of db.prepare('SELECT id, created FROM photos').all()) if (!used.has(row.id as string) && (row.created == null || Number(row.created) < limit)) db.prepare('DELETE FROM photos WHERE id=?').run(row.id);
+}
+export function photoUsage() {
+  const row = database().prepare('SELECT count(*) AS n, COALESCE(SUM(length(bytes)), 0) AS bytes FROM photos').get() as { n: number; bytes: number };
+  return { count: Number(row.n), bytes: Number(row.bytes) };
 }

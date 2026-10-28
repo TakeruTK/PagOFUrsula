@@ -4,6 +4,8 @@ import { ArrowDown, ArrowUp, ArrowUpRight, Check, CheckCircle2, Circle, Copy, Fi
 import Link from 'next/link';
 import { slugify, type Photo as PhotoType, type Piece, type Settings } from '@/lib/pieces';
 import { locales, nativeName, type Locale } from '@/lib/i18n';
+import { HOME_PHOTOS, PHOTOS_PER_PIECE } from '@/lib/limits';
+import { optimizeImage } from '@/lib/optimize-image';
 import type { StoreStatus } from '@/lib/status';
 import { Brand } from './brand';
 import Modal from './modal';
@@ -44,6 +46,8 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
 
   async function api(url: string, options?: RequestInit) {
     const response = await fetch(url, options);
+    // The session ended (8 hours, or the password changed elsewhere): back to the sign-in page.
+    if (response.status === 401) { window.location.replace('/admin'); throw new Error('Tu sesión terminó. Vuelve a iniciar sesión.'); }
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'No pudimos guardar los cambios.');
     return data;
@@ -54,7 +58,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   const refreshPieces = async () => setPieces(await api('/api/pieces'));
   const refreshStatus = async () => setStatus(await api('/api/admin/status'));
   function edit(piece?: Piece, copy = false) {
-    const base = piece ? structuredClone(piece) : { ...blank(), order: pieces.length, category: settings.categories[0].es };
+    const base = piece ? structuredClone(piece) : { ...blank(), order: Math.max(-1, ...pieces.map(p => p.order)) + 1, category: settings.categories[0].es };
     if (copy && piece) { delete (base as Draft).id; delete (base as Draft).slug; base.name = `${piece.name} (copia)`; base.status = 'Borrador'; base.featured = false; }
     base.translations = Object.fromEntries(others.map(l => [l, { ...emptyT, ...(base.translations?.[l] || {}) }])) as Draft['translations'];
     setDraft(base); setEditLang('en'); setError(''); setMessage(''); setEditing(true);
@@ -62,12 +66,25 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   const savePiece = (event: React.FormEvent) => { event.preventDefault(); void run(async () => { const saved = await api('/api/pieces', options(draft.id ? 'PUT' : 'POST', draft)); await Promise.all([refreshPieces(), refreshStatus()]); setEditing(false); setMessage(saved.warning ? 'Pieza guardada en español. ' + saved.warning : 'Pieza guardada y traducida. Los cambios ya están en tu página.'); }); };
   async function upload(files: FileList | null) {
     if (!files) return;
-    if (files.length + draft.images.length > 8) { setError('Puedes agregar hasta 8 fotografías.'); return; }
+    if (files.length + draft.images.length > PHOTOS_PER_PIECE) { setError(`Puedes agregar hasta ${PHOTOS_PER_PIECE} fotografías por pieza.`); return; }
     setUploading(true); setError('');
     const added: PhotoType[] = [];
-    try { for (const file of Array.from(files)) { const body = new FormData(); body.append('file', file); added.push(await api('/api/photos', { method: 'POST', body })); } }
+    try { for (const file of Array.from(files)) { const body = new FormData(); body.append('file', await optimizeImage(file)); added.push(await api('/api/photos', { method: 'POST', body })); } }
     catch (e) { setError((e as Error).message); } finally { setDraft(p => ({ ...p, images: [...p.images, ...added] })); setUploading(false); }
   }
+  // Reordering and hiding work straight from the list, so the owner never edits a number.
+  const movePiece = (piece: Piece, direction: number) => void run(async () => {
+    const list = [...pieces]; const from = list.findIndex(x => x.id === piece.id); const to = from + direction;
+    if (to < 0 || to >= list.length) return;
+    [list[from], list[to]] = [list[to], list[from]];
+    await Promise.all(list.map((x, n) => (x.order === n ? null : api('/api/pieces', options('PUT', { ...x, order: n })))));
+    await refreshPieces();
+  });
+  const togglePublished = (piece: Piece) => void run(async () => {
+    await api('/api/pieces', options('PUT', { ...piece, status: piece.status === 'Publicado' ? 'Borrador' : 'Publicado' }));
+    await Promise.all([refreshPieces(), refreshStatus()]);
+    setMessage(piece.status === 'Publicado' ? 'La pieza ya no se ve en tu página.' : 'La pieza ya está publicada en tu página.');
+  });
   const removePiece = () => void run(async () => { if (!deleting) return; await api('/api/pieces?id=' + deleting.id, { method: 'DELETE' }); await Promise.all([refreshPieces(), refreshStatus()]); setDeleting(null); setMessage('Pieza eliminada.'); });
   const saveSettings = (event: React.FormEvent, note: string) => { event.preventDefault(); void run(async () => { const saved = await api('/api/settings', options('PUT', settings)); setSettings(await api('/api/settings')); await refreshStatus(); setMessage(note + (saved.warning ? ' ' + saved.warning : '')); }); };
   const translateAll = () => void run(async () => { const done = await api('/api/admin/translate', { method: 'POST' }); await Promise.all([refreshPieces(), refreshStatus()]); setSettings(await api('/api/settings')); setMessage('Traducciones al día.' + (done.warning ? ' ' + done.warning : '')); });
@@ -84,19 +101,19 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   // ---- Home photos: upload new ones, pick from the pieces, reorder and remove. Saved with the form button.
   async function uploadHome(files: FileList | null, target: Target) {
     if (!files?.length) return;
-    const room = target === 'hero' ? 8 - settings.images.hero.length : 1;
-    if (room <= 0) { setError('La portada admite hasta 8 fotos. Quita una para agregar otra.'); return; }
+    const room = target === 'hero' ? HOME_PHOTOS - settings.images.hero.length : 1;
+    if (room <= 0) { setError(`La portada admite hasta ${HOME_PHOTOS} fotos. Quita una para agregar otra.`); return; }
     setUploading(true); setError('');
     try {
       const added: PhotoType[] = [];
-      for (const file of Array.from(files).slice(0, room)) { const body = new FormData(); body.append('file', file); added.push(await api('/api/photos', { method: 'POST', body })); }
+      for (const file of Array.from(files).slice(0, room)) { const body = new FormData(); body.append('file', await optimizeImage(file)); added.push(await api('/api/photos', { method: 'POST', body })); }
       setSettings(s => target === 'hero' ? { ...s, images: { ...s.images, hero: [...s.images.hero, ...added] } } : { ...s, images: { ...s.images, about: added[0] } });
       setMessage('Foto cargada. Recuerda presionar “Guardar fotos del inicio”.');
     } catch (e) { setError((e as Error).message); } finally { setUploading(false); }
   }
   function choosePhoto(photo: PhotoType) {
     if (picker === 'hero') {
-      if (settings.images.hero.length >= 8) { setError('La portada admite hasta 8 fotos.'); setPicker(null); return; }
+      if (settings.images.hero.length >= HOME_PHOTOS) { setError(`La portada admite hasta ${HOME_PHOTOS} fotos.`); setPicker(null); return; }
       setSettings(s => ({ ...s, images: { ...s.images, hero: [...s.images.hero, photo] } }));
     } else setSettings(s => ({ ...s, images: { ...s.images, about: photo } }));
     setPicker(null); setMessage('Foto elegida. Recuerda presionar “Guardar fotos del inicio”.');
@@ -106,6 +123,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   const photoKey = (i: PhotoType) => i.url + JSON.stringify(i.crop || '');
   const library = Array.from(new Map([...pieces.flatMap(p => p.images.map(i => [photoKey(i), { photo: i, label: p.name }] as const)), ...settings.images.hero.map(i => [photoKey(i), { photo: i, label: 'Portada' }] as const)]).values());
 
+  const reorderable = !filter && visibility === 'Todas';
   const shownPieces = pieces.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()) && (visibility === 'Todas' || p.status === visibility));
   const text = <K extends keyof Settings>(key: K, value: Settings[K]) => setSettings(s => ({ ...s, [key]: value }));
   const tr = draft.translations?.[editLang] || emptyT;
@@ -137,6 +155,10 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
             <div><span>En borrador</span><strong>{count('Borrador')}</strong></div>
             <div><span>Pasos pendientes</span><strong>{String(pending).padStart(2, '0')}</strong></div>
           </div>
+          <div className="settings-card"><span className="step-label">ESPACIO PARA FOTOS</span>
+            <p>{Math.round(status.photos.bytes / 1048576)} MB usados de {Math.round(status.photos.limit / 1048576)} MB · {status.photos.count} fotos</p>
+            <progress className="meter" max={status.photos.limit} value={status.photos.bytes} aria-label="Espacio usado para fotos" />
+            <p className="field-help">Las fotos se reducen solas al subirlas. Si te acercas al límite, elimina piezas o fotos que ya no uses: las que quedan sin usar se borran solas después de un día.</p></div>
           <div className="settings-card"><span className="step-label">{pending ? 'PARA COMPLETAR' : 'TODO EN ORDEN'}</span><ul className="checklist">{status.checks.map(c => <li key={c.id} className={c.ok ? 'ok' : ''}>{c.ok ? <CheckCircle2 size={18} /> : <Circle size={18} />}<div><strong>{c.label}</strong>{!c.ok && <small>{c.hint}</small>}</div></li>)}</ul></div>
         </>}
 
@@ -163,15 +185,18 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
             <label><Search size={17} /><input aria-label="Buscar piezas" placeholder="Buscar una pieza…" value={filter} onChange={e => setFilter(e.target.value)} /></label>
             <select aria-label="Filtrar por visibilidad" value={visibility} onChange={e => setVisibility(e.target.value)}><option>Todas</option><option>Publicado</option><option>Borrador</option></select>
           </div>
-          <div className="admin-products">{shownPieces.map(p => <article key={p.id}>
+          <div className="admin-products">{shownPieces.map((p, index) => <article key={p.id}>
             <Photo photo={p.images[0]} alt={p.name} />
             <div className="admin-product-body">
               <span className={`status ${p.status === 'Borrador' ? 'draft' : ''}`}>{p.status}</span>
               <h2>{p.name}</h2>
               <p>{p.category} · {p.availability}</p>
-              <p className="tiny-label">ORDEN {p.order}{p.featured ? ' · PORTADA' : ''}{others.every(l => filled(p, l)) ? '' : ' · FALTAN TRADUCCIONES'}</p>
+              <p className="tiny-label">POSICIÓN {index + 1}{p.featured ? ' · PORTADA' : ''}{others.every(l => filled(p, l)) ? '' : ' · FALTAN TRADUCCIONES'}</p>
               <div className="admin-actions">
                 <button onClick={() => edit(p)}><Pencil size={15} /> Editar</button>
+                <button disabled={busy} onClick={() => togglePublished(p)}>{p.status === 'Publicado' ? 'Ocultar' : 'Publicar'}</button>
+                {reorderable && <><button className="icon-button" aria-label={`Subir ${p.name}`} disabled={busy || index === 0} onClick={() => movePiece(p, -1)}><ArrowUp size={16} /></button>
+                  <button className="icon-button" aria-label={`Bajar ${p.name}`} disabled={busy || index === shownPieces.length - 1} onClick={() => movePiece(p, 1)}><ArrowDown size={16} /></button></>}
                 <button className="icon-button" aria-label={`Duplicar ${p.name}`} onClick={() => edit(p, true)}><Copy size={16} /></button>
                 <button className="icon-button" aria-label={`Eliminar ${p.name}`} onClick={() => { setError(''); setDeleting(p); }}><Trash2 size={16} /></button>
               </div>
@@ -184,7 +209,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
           <p className="admin-explainer">Aquí eliges las fotografías que se ven en el inicio de tu página. Los cambios se publican al presionar <strong>Guardar fotos del inicio</strong>. Si no eliges ninguna, la página usa las fotos de tus piezas destacadas.</p>
           <div className="settings-card">
             <span className="step-label">01 / PORTADA · FOTOS FLOTANTES</span>
-            <p className="field-help">Son las láminas que flotan en 3D alrededor de tu nombre al abrir la página. Entre 4 y 8 fotos se ven mejor. La primera también es el fondo de la portada en equipos antiguos. Usa fotos verticales o cuadradas, con buena luz.</p>
+            <p className="field-help">Son las láminas que flotan en 3D alrededor de tu nombre al abrir la página. Entre 4 y 6 fotos se ven mejor. La primera también es el fondo de la portada en equipos antiguos. Usa fotos verticales o cuadradas, con buena luz.</p>
             <div className="slot-actions" style={{ marginTop: 0 }}>
               <label className="button small" style={{ position: 'relative', cursor: 'pointer' }}><ImagePlus size={16} /> {uploading ? 'Subiendo…' : 'Subir fotos'}<input aria-label="Subir fotos de la portada" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || uploading} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} onChange={e => { void uploadHome(e.target.files, 'hero'); e.target.value = ''; }} /></label>
               <button type="button" className="button outline small" onClick={() => setPicker('hero')}>Elegir de mis piezas</button>
@@ -219,7 +244,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
             <button className="button" disabled={busy || uploading}><Save size={17} />{busy ? 'Guardando…' : 'Guardar fotos del inicio'}</button>
             <Link className="button outline" href="/es" target="_blank">Ver cómo queda <ArrowUpRight size={16} /></Link>
           </div>
-          <p className="field-help" style={{ marginTop: 16 }}>Formatos JPG, PNG o WebP, hasta 6 MB por foto.</p>
+          <p className="field-help" style={{ marginTop: 16 }}>Formatos JPG, PNG o WebP. Las fotos se reducen solas al subirlas para que la página cargue rápido.</p>
         </form>}
 
         {tab === 'store' && <form className="settings-form" onSubmit={e => saveSettings(e, 'Los cambios de tu página quedaron guardados.')}>
@@ -266,7 +291,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
       <form onSubmit={savePiece}>
         <div className="editor-grid">
           <div>
-            <label className="upload-zone"><ImagePlus size={30} /><strong>{uploading ? 'Subiendo fotografías…' : 'Agregar fotografías'}</strong><span>JPG, PNG o WebP · Hasta 6 MB</span><span>Máximo 8 fotos. La primera es la portada de la pieza.</span>
+            <label className="upload-zone"><ImagePlus size={30} /><strong>{uploading ? 'Subiendo fotografías…' : 'Agregar fotografías'}</strong><span>JPG, PNG o WebP · se reducen solas al subirlas</span><span>Máximo {PHOTOS_PER_PIECE} fotos. La primera es la portada de la pieza.</span>
               <input aria-label="Subir fotografías" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || uploading} onChange={e => { void upload(e.target.files); e.target.value = ''; }} /></label>
             <div className="editor-photos">{draft.images.map((image, index) => <div className="photo-card" key={image.url}><Photo photo={image} alt={`Fotografía ${index + 1}`} /><div className="photo-tools">
               <button type="button" aria-label={`Mover foto ${index + 1} antes`} disabled={index === 0} onClick={() => movePhoto(index, -1)}><ArrowUp size={14} /></button><span>{index === 0 ? 'Portada' : `Foto ${index + 1}`}</span>
@@ -286,7 +311,6 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
               <label className="field">Valor referencial (CLP, opcional)<input type="number" min={0} max={100000000} step={1} value={draft.price || ''} onChange={e => setDraft({ ...draft, price: Number(e.target.value) })} /><small>Solo se muestra si activas “Mostrar el valor” en Mi página.</small></label>
               <div className="form-row">
                 <label className="field">Visibilidad<select value={draft.status} onChange={e => setDraft({ ...draft, status: e.target.value as Piece['status'] })}><option>Borrador</option><option>Publicado</option></select></label>
-                <label className="field">Orden en la página<input type="number" min={0} max={10000} required value={draft.order} onChange={e => setDraft({ ...draft, order: Number(e.target.value) })} /></label>
               </div>
               <label className="check-field"><input type="checkbox" checked={draft.featured} onChange={e => setDraft({ ...draft, featured: e.target.checked })} /> Usar su fotografía como fondo de la portada</label>
               <p className="field-help">{draft.status === 'Borrador' ? 'Solo tú puedes ver esta pieza y sus fotografías subidas.' : 'Al guardar, esta pieza aparecerá en tu página.'}</p>
