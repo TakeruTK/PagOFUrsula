@@ -11,7 +11,7 @@ import path from 'node:path';
 const base = 'http://127.0.0.1:3013', live = 'http://127.0.0.1:3015';
 const username = 'test-atelier', password = randomBytes(20).toString('hex'), salt = randomBytes(16).toString('hex');
 const hash = `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex')}`;
-let server, indexed, legacy, translating, deepl, translator, cookie = '', pieces, output = '', draftId, photoUrl, settings;
+let server, indexed, legacy, translating, deepl, cloud, translator, cookie = '', pieces, output = '', draftId, photoUrl, settings;
 
 const request = (url, { method = 'GET', body, auth = false, origin = base, headers = {}, ...rest } = {}) => fetch(base + url, { method, headers: { ...(method !== 'GET' ? { Origin: origin } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}), ...(auth ? { Cookie: cookie } : {}), ...headers }, body: body ? JSON.stringify(body) : undefined, redirect: 'manual', ...rest });
 const saveSettings = patch => request('/api/settings', { method: 'PUT', auth: true, body: { ...settings, ...patch } });
@@ -38,7 +38,7 @@ before(async () => {
 });
 after(async () => {
   translator?.close();
-  for (const child of [server, indexed, legacy, translating, deepl]) if (child && child.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
+  for (const child of [server, indexed, legacy, translating, deepl, cloud]) if (child && child.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
 });
 
 // ---- No payment gateway ---------------------------------------------------------------------------------------
@@ -306,6 +306,7 @@ test('Spanish is translated automatically, corrections by hand are kept, and a t
       res.setHeader('content-type', 'application/json');
       // DeepL speaks JSON on /v2/translate; the public Google endpoint takes a form.
       if (req.url.endsWith('/v2/translate')) { const asked = JSON.parse(raw); assert.match(req.headers.authorization, /^DeepL-Auth-Key /); res.end(JSON.stringify({ translations: asked.text.map(t => ({ text: `[${asked.target_lang}] ${t}` })) })); return; }
+      if (req.url.endsWith('/language/translate/v2')) { const asked = JSON.parse(raw); assert.ok(req.headers['x-goog-api-key']); res.end(JSON.stringify({ data: { translations: asked.q.map(x => ({ translatedText: `[${asked.target}] ${x}` })) } })); return; }
       const q = new URLSearchParams(raw); res.end(JSON.stringify([[[`[${q.get('tl')}] ${q.get('q')}`, q.get('q')]]]));
     });
   }).listen(3018);
@@ -342,6 +343,14 @@ test('Spanish is translated automatically, corrections by hand are kept, and a t
   const snow = (await (await fetch(deeplHost + '/api/pieces', { headers: deeplAuth })).json()).find(p => p.name === 'Aros de nieve');
   assert.equal(snow.translations.pt.name, '[PT-BR] Aros de nieve'); assert.equal(snow.translations.en.name, '[EN-US] Aros de nieve'); assert.equal(snow.translations.fr.name, '[FR] Aros de nieve');
   assert.match(snow.translations.fr.description, /## \[FR\] Un subtítulo/, 'the subtitle marker survives');
+  // The official Google Cloud Translation API works the same way.
+  cloud = launch(3021, { SITE_URL: 'http://127.0.0.1:3021', GOOGLE_TRANSLATE_API_KEY: 'prueba', GOOGLE_TRANSLATE_URL: 'http://127.0.0.1:3018/language/translate/v2' });
+  const cloudHost = 'http://127.0.0.1:3021'; await ready(cloudHost + '/es');
+  const cloudLogin = await fetch(cloudHost + '/api/admin/login', { method: 'POST', headers: { Origin: cloudHost, 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+  const cloudAuth = { Origin: cloudHost, 'Content-Type': 'application/json', Cookie: cloudLogin.headers.get('set-cookie').split(';')[0] };
+  assert.equal((await fetch(cloudHost + '/api/pieces', { method: 'POST', headers: cloudAuth, body: JSON.stringify({ ...spanish, name: 'Aros de bosque' }) })).status, 200);
+  const forest = (await (await fetch(cloudHost + '/api/pieces', { headers: cloudAuth })).json()).find(p => p.name === 'Aros de bosque');
+  assert.equal(forest.translations.fr.name, '[fr] Aros de bosque'); assert.equal(forest.translations.en.material, '[en] Plata 950');
   // A new category only needs its Spanish name.
   const config = await (await send('/api/settings', 'GET')).json();
   assert.equal((await send('/api/settings', 'PUT', { ...config, categories: [...config.categories, { es: 'Pulseras de mano', en: '', pt: '', fr: '' }] })).status, 200);
