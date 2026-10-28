@@ -19,7 +19,7 @@ export function storeStatus() {
   const checks: Check[] = [
     { id: 'whatsapp', ok: !!settings.whatsapp, label: 'WhatsApp para recibir consultas', hint: 'Agrega tu número en “Mi página”. Es el botón principal de contacto de cada pieza.' },
     { id: 'products', ok: published.length > 0 && realPhotos === published.length, label: 'Piezas con fotografías reales', hint: `${published.length - realPhotos} de ${published.length} piezas publicadas aún usan las imágenes de referencia.` },
-    { id: 'texts', ok: JSON.stringify([settings.headline, settings.story]) !== JSON.stringify([initialSettings.headline, initialSettings.story]), label: 'Textos de la portada revisados', hint: 'Los textos son una propuesta: edítalos en “Mi página” (español e inglés).' },
+    { id: 'texts', ok: JSON.stringify([settings.headline, settings.story]) !== JSON.stringify([initialSettings.headline, initialSettings.story]), label: 'Textos de la portada revisados', hint: 'Los textos son una propuesta: edítalos en “Mi página” (se traducen solos a los otros idiomas).' },
     // Search engines only index a page in a language once it is written in that language.
     { id: 'translations', ok: missing.length === 0, label: 'Piezas traducidas a todos los idiomas', hint: missing.length ? `Faltan traducciones: ${missing.join(' · ')}. Pulsa «Traducir todo» en Mis piezas (se traducen solas desde el español); sin ellas la pieza no aparece en Google en ese idioma.` : '' },
     { id: 'contact', ok: !!settings.contactEmail, label: 'Correo de contacto', hint: 'Se muestra como alternativa de contacto en la página.' },

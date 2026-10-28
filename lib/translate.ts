@@ -23,7 +23,7 @@ async function withClaude(texts: string[], to: Target): Promise<string[]> {
     headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-haiku-5-5', max_tokens: 8000,
-      system: `You translate texts for the website of Ursula Alcaino, a Chilean silversmith who makes handmade jewelry. Translate from Spanish to ${languageName[to]} with a warm, elegant, natural tone. Keep names (Ursula Alcaino), numbers, units and any line starting with "## " (keep the "## "). Reply with ONLY a JSON array of strings, one translation per input, in the same order.`,
+      system: `You translate texts for the website of Ursula Alcaino, a Chilean silversmith who makes handmade jewelry. Translate from Spanish to ${languageName[to]} with a warm, elegant, natural tone. In Chilean Spanish "aros" means earrings (hoop earrings only when it says "argollas"). Keep names (Ursula Alcaino), numbers, units and any line starting with "## " (keep the "## "). Reply with ONLY a JSON array of strings, one translation per input, in the same order.`,
       messages: [{ role: 'user', content: JSON.stringify(texts) }],
     }),
     signal: AbortSignal.timeout(60000),
