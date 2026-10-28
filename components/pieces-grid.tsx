@@ -12,7 +12,7 @@ export default function PiecesGrid({ cards, categories, lang, dict, showPrices }
   const tabs = categories.filter(c => cards.some(p => p.categoryKey === c.es));
   const shown = cards.filter(p => category === 'all' || p.categoryKey === category);
   return <>
-    {tabs.length > 1 && <div className="chips" role="group" aria-label={dict.collection.filterLabel}>
+    {cards.length > 1 && <div className="chips" role="group" aria-label={dict.collection.filterLabel}>
       <button aria-pressed={category === 'all'} onClick={() => setCategory('all')}>{dict.collection.all}</button>
       {tabs.map(c => <button key={c.es} aria-pressed={category === c.es} onClick={() => setCategory(c.es)}>{c[lang]}</button>)}
     </div>}
