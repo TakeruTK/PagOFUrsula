@@ -13,4 +13,4 @@ export function withinBudget(key:string,max:number,windowMs:number){
   return Number(row?.count)<=max;
 }
 /** What to tell the owner when the translator could not reach a language; the Spanish text is saved either way. */
-export const translationNote=(failed:string[])=>failed.length?'Guardado, pero no pudimos traducir al '+failed.map(l=>({en:'inglés',pt:'portugués',fr:'francés'}[l]||l)).join(', ')+'. Se reintentará al guardar de nuevo o con «Traducir todo».':undefined;
+export const translationNote=(failed:string[])=>failed.length?'No pudimos traducir al '+(['en','pt','fr'] as const).filter(l=>failed.includes(l)).map(l=>({en:'inglés',pt:'portugués',fr:'francés'}[l])).join(', ')+' (el traductor no respondió). Se reintentará al guardar de nuevo o con «Traducir todo».':undefined;

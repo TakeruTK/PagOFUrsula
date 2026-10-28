@@ -23,7 +23,7 @@ export const robotsMeta = (): Metadata['robots'] => (allowIndexing() ? { index: 
 export const openGraphBase = (locale: Locale) => ({ siteName: 'Ursula Alcaino · Orfebrería', locale: ogLocale[locale], alternateLocale: locales.filter(l => l !== locale).map(l => ogLocale[l]), type: 'website' as const });
 
 /** Serialises JSON-LD safely for a <script> tag. */
-export const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, '\u003c');
+export const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, '\\u003c');
 
 /** Metadata for the static pages (collection, about, contact), with every language version linked. */
 export function pageMetadata(locale: Locale, key: PageKey, title: string, description: string): Metadata {

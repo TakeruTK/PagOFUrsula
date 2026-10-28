@@ -17,7 +17,7 @@ const emptyT = { name: '', description: '', material: '', size: '', caption: '' 
 type Other = Exclude<Locale, 'es'>;
 const others = locales.filter((l): l is Other => l !== 'es');
 const freshTranslations = () => Object.fromEntries(others.map(l => [l, { ...emptyT }])) as Draft['translations'];
-const filled = (d: Draft, l: Locale) => l === 'es' || !!(d.translations?.[l]?.name && d.translations?.[l]?.description);
+const filled = (d: Draft, l: Other) => !!(d.translations?.[l]?.name && d.translations?.[l]?.description);
 const blank = (): Draft => ({ name: '', category: '', description: '', material: '', size: '', price: 0, order: 0, featured: false, status: 'Borrador', availability: 'Disponible', images: [], translations: freshTranslations() });
 const TABS: [Tab, string, React.ReactNode][] = [
   ['summary', 'Resumen', <LayoutDashboard size={19} key="a" />], ['pieces', 'Mis piezas', <Package size={19} key="b" />], ['images', 'Fotos del inicio', <Images size={19} key="f" />], ['store', 'Mi página', <Home size={19} key="c" />],
@@ -34,10 +34,9 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   const [visibility, setVisibility] = useState('Todas');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Draft>(blank());
-  const [editLang, setEditLang] = useState<Locale>('es');
+  const [editLang, setEditLang] = useState<Other>('en');
   const [deleting, setDeleting] = useState<Piece | null>(null);
   const [picker, setPicker] = useState<Target | null>(null);
-  const [policyLang, setPolicyLang] = useState<Locale>('es');
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -58,9 +57,9 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
     const base = piece ? structuredClone(piece) : { ...blank(), order: pieces.length, category: settings.categories[0].es };
     if (copy && piece) { delete (base as Draft).id; delete (base as Draft).slug; base.name = `${piece.name} (copia)`; base.status = 'Borrador'; base.featured = false; }
     base.translations = Object.fromEntries(others.map(l => [l, { ...emptyT, ...(base.translations?.[l] || {}) }])) as Draft['translations'];
-    setDraft(base); setEditLang('es'); setError(''); setMessage(''); setEditing(true);
+    setDraft(base); setEditLang('en'); setError(''); setMessage(''); setEditing(true);
   }
-  const savePiece = (event: React.FormEvent) => { event.preventDefault(); void run(async () => { const saved = await api('/api/pieces', options(draft.id ? 'PUT' : 'POST', draft)); await Promise.all([refreshPieces(), refreshStatus()]); setEditing(false); setMessage('Pieza guardada y traducida. Los cambios ya están en tu página.' + (saved.warning ? ' ' + saved.warning : '')); }); };
+  const savePiece = (event: React.FormEvent) => { event.preventDefault(); void run(async () => { const saved = await api('/api/pieces', options(draft.id ? 'PUT' : 'POST', draft)); await Promise.all([refreshPieces(), refreshStatus()]); setEditing(false); setMessage(saved.warning ? 'Pieza guardada en español. ' + saved.warning : 'Pieza guardada y traducida. Los cambios ya están en tu página.'); }); };
   async function upload(files: FileList | null) {
     if (!files) return;
     if (files.length + draft.images.length > 8) { setError('Puedes agregar hasta 8 fotografías.'); return; }
@@ -109,8 +108,8 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
 
   const shownPieces = pieces.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()) && (visibility === 'Todas' || p.status === visibility));
   const text = <K extends keyof Settings>(key: K, value: Settings[K]) => setSettings(s => ({ ...s, [key]: value }));
-  const tr = editLang === 'es' ? emptyT : (draft.translations?.[editLang] || emptyT);
-  const setTr = (patch: Partial<typeof emptyT>) => setDraft(d => (editLang === 'es' ? d : { ...d, translations: { ...d.translations, [editLang]: { ...emptyT, ...(d.translations?.[editLang] || {}), ...patch, auto: undefined } } }));
+  const tr = draft.translations?.[editLang] || emptyT;
+  const setTr = (patch: Partial<typeof emptyT>) => setDraft(d => ({ ...d, translations: { ...d.translations, [editLang]: { ...emptyT, ...(d.translations?.[editLang] || {}), ...patch, auto: undefined } } }));
   const setLangText = (l: Other, patch: Partial<Settings['en']>) => setSettings(s => ({ ...s, [l]: { ...s[l], ...patch, auto: undefined } }));
   const pending = status.checks.filter(c => !c.ok).length;
   const count = (s: string) => pieces.filter(p => p.status === s).length.toString().padStart(2, '0');
@@ -138,10 +137,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
             <div><span>En borrador</span><strong>{count('Borrador')}</strong></div>
             <div><span>Pasos pendientes</span><strong>{String(pending).padStart(2, '0')}</strong></div>
           </div>
-          <div className="settings-card"><span className="step-label">ANTES DE ABRIR AL PÚBLICO</span><ul className="checklist">{status.checks.map(c => <li key={c.id} className={c.ok ? 'ok' : ''}>{c.ok ? <CheckCircle2 size={18} /> : <Circle size={18} />}<div><strong>{c.label}</strong>{!c.ok && <small>{c.hint}</small>}</div></li>)}</ul></div>
-          <div className="settings-card"><span className="step-label">DIRECCIÓN Y BUSCADORES</span>
-            <p>Dirección pública: <strong>{status.siteUrl}</strong></p><p>Indexación en Google: <strong>{status.indexing ? 'activada' : 'desactivada (la página aún no aparece en buscadores)'}</strong></p>
-            <p className="field-help">La dirección y la visibilidad en Google se configuran en el servidor, no en este panel.</p></div>
+          <div className="settings-card"><span className="step-label">{pending ? 'PARA COMPLETAR' : 'TODO EN ORDEN'}</span><ul className="checklist">{status.checks.map(c => <li key={c.id} className={c.ok ? 'ok' : ''}>{c.ok ? <CheckCircle2 size={18} /> : <Circle size={18} />}<div><strong>{c.label}</strong>{!c.ok && <small>{c.hint}</small>}</div></li>)}</ul></div>
         </>}
 
         {tab === 'pieces' && <>
@@ -173,7 +169,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
               <span className={`status ${p.status === 'Borrador' ? 'draft' : ''}`}>{p.status}</span>
               <h2>{p.name}</h2>
               <p>{p.category} · {p.availability}</p>
-              <p className="tiny-label">ORDEN {p.order}{p.featured ? ' · PORTADA' : ''}{p.translations?.en?.name ? ' · EN ✓' : ' · SIN INGLÉS'}</p>
+              <p className="tiny-label">ORDEN {p.order}{p.featured ? ' · PORTADA' : ''}{others.every(l => filled(p, l)) ? '' : ' · FALTAN TRADUCCIONES'}</p>
               <div className="admin-actions">
                 <button onClick={() => edit(p)}><Pencil size={15} /> Editar</button>
                 <button className="icon-button" aria-label={`Duplicar ${p.name}`} onClick={() => edit(p, true)}><Copy size={16} /></button>
@@ -250,9 +246,8 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
         </form>}
 
         {tab === 'policies' && <form className="settings-form" onSubmit={e => saveSettings(e, 'Los textos legales quedaron actualizados.')}>
-          <p className="admin-explainer">Estos textos son borradores generales. Revísalos antes de abrir la página: se publican en /terminos y /privacidad. Separa los párrafos con una línea en blanco. Para un subtítulo, empieza la línea con ## .</p>
-          <div className="studio-filters"><select aria-label="Idioma de los textos" value={policyLang} onChange={e => setPolicyLang(e.target.value as Locale)}>{locales.map(l => <option key={l} value={l}>{nativeName[l]}</option>)}</select></div>
-          {(['terms', 'privacy'] as const).map(doc => <div className="settings-card" key={doc}><label className="field">{doc === 'terms' ? 'Condiciones de consulta y compra' : 'Política de privacidad'}<textarea rows={12} maxLength={20000} value={settings.policies[policyLang][doc]} onChange={e => setSettings(s => ({ ...s, policies: { ...s.policies, [policyLang]: { ...s.policies[policyLang], [doc]: e.target.value } } }))} /></label></div>)}
+          <p className="admin-explainer">Estos textos se publican en la página de condiciones y en la de privacidad. Escríbelos solo en español: se traducen solos a los otros idiomas al guardar. Separa los párrafos con una línea en blanco. Para un subtítulo, empieza la línea con ## .</p>
+          {(['terms', 'privacy'] as const).map(doc => <div className="settings-card" key={doc}><label className="field">{doc === 'terms' ? 'Condiciones de consulta y compra' : 'Política de privacidad'}<textarea rows={12} maxLength={20000} value={settings.policies.es[doc]} onChange={e => setSettings(s => ({ ...s, policies: { ...s.policies, es: { ...s.policies.es, [doc]: e.target.value } } }))} /></label></div>)}
           <button className="button" disabled={busy}><Save size={17} />{busy ? 'Guardando…' : 'Guardar textos'}</button>
         </form>}
 
@@ -280,17 +275,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
               <input aria-label={`Descripción de foto ${index + 1}`} placeholder="Descripción de la foto (sirve para buscadores y accesibilidad)" maxLength={200} value={image.caption} onChange={e => setDraft(p => ({ ...p, images: p.images.map((im, i) => (i === index ? { ...im, caption: e.target.value } : im)) }))} /></div>)}</div>
           </div>
           <div>
-            <div className="lang-tabs" role="tablist">{locales.map(l => <button key={l} type="button" role="tab" aria-selected={editLang === l} className={editLang === l ? 'active' : ''} onClick={() => setEditLang(l)}>{nativeName[l]}{filled(draft, l) ? ' ✓' : ''}</button>)}</div>
-            {editLang !== 'es' ? <>
-              <p className="field-help">Esta traducción se escribe sola al guardar la pieza. Solo corrígela si quieres cambiar algo: una versión corregida por ti no se vuelve a traducir automáticamente.</p>
-              <label className="field">Nombre de la pieza ({nativeName[editLang]})<input maxLength={100} lang={editLang} value={tr.name} onChange={e => setTr({ name: e.target.value })} /></label>
-              <label className="field">Historia y descripción ({nativeName[editLang]})<textarea rows={5} maxLength={4000} lang={editLang} value={tr.description} onChange={e => setTr({ description: e.target.value })} /></label>
-              <label className="field">Materiales y técnica ({nativeName[editLang]})<input maxLength={150} lang={editLang} value={tr.material} onChange={e => setTr({ material: e.target.value })} /></label>
-              <label className="field">Tamaño y medidas ({nativeName[editLang]})<input maxLength={150} lang={editLang} value={tr.size} onChange={e => setTr({ size: e.target.value })} /></label>
-              <label className="field">Descripción de la foto de portada ({nativeName[editLang]})<input maxLength={200} lang={editLang} value={tr.caption} onChange={e => setTr({ caption: e.target.value })} /></label>
-            </> : <>
               <label className="field">Nombre de la pieza<input required minLength={2} maxLength={100} value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} /></label>
-              <label className="field">Dirección en internet (slug)<input maxLength={80} placeholder={slugify(draft.name) || 'se genera sola'} pattern="[a-z0-9]+(-[a-z0-9]+)*" value={draft.slug || ''} onChange={e => setDraft({ ...draft, slug: e.target.value.toLowerCase() })} /><small>Aparece en el enlace de la pieza. Déjalo vacío para generarlo desde el nombre; no lo cambies si ya compartiste el enlace.</small></label>
               <div className="form-row">
                 <label className="field">Categoría<select value={draft.category} onChange={e => setDraft({ ...draft, category: e.target.value })}>{settings.categories.filter(c => c.es).map(c => <option key={c.es}>{c.es}</option>)}</select><small>¿Necesitas otra? Créala en «Categorías» de Mis piezas.</small></label>
                 <label className="field">Disponibilidad<select value={draft.availability} onChange={e => setDraft({ ...draft, availability: e.target.value as Piece['availability'] })}><option>Disponible</option><option>Por encargo</option><option>Vendido</option></select></label>
@@ -305,7 +290,15 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
               </div>
               <label className="check-field"><input type="checkbox" checked={draft.featured} onChange={e => setDraft({ ...draft, featured: e.target.checked })} /> Usar su fotografía como fondo de la portada</label>
               <p className="field-help">{draft.status === 'Borrador' ? 'Solo tú puedes ver esta pieza y sus fotografías subidas.' : 'Al guardar, esta pieza aparecerá en tu página.'}</p>
-            </>}
+            <details className="translations"><summary><strong>Traducciones automáticas</strong> · inglés, portugués y francés</summary>
+            <div className="lang-tabs" role="tablist">{others.map(l => <button key={l} type="button" role="tab" aria-selected={editLang === l} className={editLang === l ? 'active' : ''} onClick={() => setEditLang(l)}>{nativeName[l]}{filled(draft, l) ? ' ✓' : ''}</button>)}</div>
+              <p className="field-help">Esta traducción se escribe sola al guardar la pieza. Solo corrígela si quieres cambiar algo: una versión corregida por ti no se vuelve a traducir automáticamente.</p>
+              <label className="field">Nombre de la pieza ({nativeName[editLang]})<input maxLength={100} lang={editLang} value={tr.name} onChange={e => setTr({ name: e.target.value })} /></label>
+              <label className="field">Historia y descripción ({nativeName[editLang]})<textarea rows={5} maxLength={4000} lang={editLang} value={tr.description} onChange={e => setTr({ description: e.target.value })} /></label>
+              <label className="field">Materiales y técnica ({nativeName[editLang]})<input maxLength={150} lang={editLang} value={tr.material} onChange={e => setTr({ material: e.target.value })} /></label>
+              <label className="field">Tamaño y medidas ({nativeName[editLang]})<input maxLength={150} lang={editLang} value={tr.size} onChange={e => setTr({ size: e.target.value })} /></label>
+              <label className="field">Descripción de la foto de portada ({nativeName[editLang]})<input maxLength={200} lang={editLang} value={tr.caption} onChange={e => setTr({ caption: e.target.value })} /></label>
+            </details>
           </div>
         </div>
         {error && <p className="error-box" role="alert">{error}</p>}

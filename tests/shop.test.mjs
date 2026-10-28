@@ -298,7 +298,7 @@ test('the owner can create categories, pieces must use one, and a category in us
 test('Spanish is translated automatically, corrections by hand are kept, and a translator that is down does not block saving', async () => {
   // Without a reachable translator the Spanish text is still saved and the owner is told.
   const offline = await request('/api/pieces', { method: 'POST', auth: true, body: { ...pieces[0], id: undefined, slug: undefined, name: 'Sin traductor', status: 'Borrador', translations: undefined } });
-  assert.equal(offline.status, 200); const note = (await offline.json()); assert.match(note.warning, /no pudimos traducir/);
+  assert.equal(offline.status, 200); const note = (await offline.json()); assert.match(note.warning, /No pudimos traducir/);
   await request(`/api/pieces?id=${note.id}`, { method: 'DELETE', auth: true });
 
   translator = createServer((req, res) => {

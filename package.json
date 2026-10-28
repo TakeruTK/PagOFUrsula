@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "admin:setup": "node scripts/setup-admin.mjs",
     "db:production": "node scripts/prepare-production-db.mjs",
-    "test": "node --test tests/shop.test.mjs"
+    "test": "node --test tests/shop.test.mjs tests/security.test.mjs"
   },
   "dependencies": {
     "lucide-react": "1.31.0",
