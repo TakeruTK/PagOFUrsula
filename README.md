@@ -54,7 +54,7 @@ Cada pieza lleva un botón **Consultar por WhatsApp** que abre la conversación 
 - Las categorías del filtro (aros, anillos, pulseras…) las crea y traduce la clienta en Mis piezas → Categorías.
 - El panel permite escribir nombre, descripción, materiales, tamaño y descripción de foto en cada idioma. Una pieza sin traducir no se lista en ese idioma y su página va con `noindex`, para no duplicar el texto en español.
 - Verificación de buscadores: `GOOGLE_SITE_VERIFICATION` y `BING_SITE_VERIFICATION` (códigos de Search Console y Bing Webmaster).
-- La clienta escribe solo en español: al guardar, las piezas, los textos de la página y las categorías se traducen solos a inglés, portugués y francés (con `ANTHROPIC_API_KEY` usa Claude; sin ella, el traductor público de Google). Lo que ella corrige a mano no se vuelve a sobrescribir.
+- La clienta escribe solo en español: al guardar, las piezas, los textos de la página y las categorías se traducen solos a inglés, portugués y francés (con `DEEPL_API_KEY`, plan gratis de DeepL de 500.000 caracteres al mes, usa DeepL; con `ANTHROPIC_API_KEY`, Claude; sin ninguna, el traductor público de Google, que puede bloquearse). Lo que ella corrige a mano no se vuelve a sobrescribir.
 
 Antes de abrir al público: define `SITE_URL` (https), sube fotografías reales, completa el WhatsApp y recién entonces pon `ALLOW_INDEXING=true`. El panel (*Resumen*) muestra qué falta.
 
@@ -66,7 +66,7 @@ Antes de abrir al público: define `SITE_URL` (https), sube fotografías reales,
 
 1. **Servidor con disco persistente** y Node 24: la base (`ursula.sqlite`) guarda piezas, textos y fotos. No sirve un hosting sin disco (tipo funciones serverless) porque las fotos y los cambios de la clienta se perderían.
 2. **Contenido real**: `pnpm db:production` crea `data/production/ursula.sqlite` (solo piezas publicadas, sin sesiones ni contraseñas). Súbelo a la carpeta que uses como `DATA_DIR`. Si el servidor arranca sin esa base, mostrará las piezas de ejemplo.
-3. **Variables de entorno**: `SITE_URL=https://ursulaalcainoorfebreria.com`, `DATA_DIR`, `ALLOW_INDEXING=true` (solo cuando la clienta apruebe), `TRUST_PROXY=true` si hay un proxy/CDN delante (límite de intentos de login por visitante), `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `ANTHROPIC_API_KEY` (mejor traducción automática).
+3. **Variables de entorno**: `SITE_URL=https://ursulaalcainoorfebreria.com`, `DATA_DIR`, `ALLOW_INDEXING=true` (solo cuando la clienta apruebe), `TRUST_PROXY=true` si hay un proxy/CDN delante (límite de intentos de login por visitante), `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `DEEPL_API_KEY` (traducción automática confiable y gratis hasta 500.000 caracteres al mes).
 4. **Acceso al taller**: en el servidor, `pnpm admin:setup` y guardar la contraseña que muestra.
 5. **Arranque**: `pnpm build && pnpm start -- --hostname 0.0.0.0` detrás de HTTPS.
 6. **Respaldo**: copiar `DATA_DIR/ursula.sqlite` (y sus archivos `-wal`/`-shm`) a diario.

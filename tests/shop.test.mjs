@@ -11,7 +11,7 @@ import path from 'node:path';
 const base = 'http://127.0.0.1:3013', live = 'http://127.0.0.1:3015';
 const username = 'test-atelier', password = randomBytes(20).toString('hex'), salt = randomBytes(16).toString('hex');
 const hash = `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex')}`;
-let server, indexed, legacy, translating, translator, cookie = '', pieces, output = '', draftId, photoUrl, settings;
+let server, indexed, legacy, translating, deepl, translator, cookie = '', pieces, output = '', draftId, photoUrl, settings;
 
 const request = (url, { method = 'GET', body, auth = false, origin = base, headers = {}, ...rest } = {}) => fetch(base + url, { method, headers: { ...(method !== 'GET' ? { Origin: origin } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}), ...(auth ? { Cookie: cookie } : {}), ...headers }, body: body ? JSON.stringify(body) : undefined, redirect: 'manual', ...rest });
 const saveSettings = patch => request('/api/settings', { method: 'PUT', auth: true, body: { ...settings, ...patch } });
@@ -38,7 +38,7 @@ before(async () => {
 });
 after(async () => {
   translator?.close();
-  for (const child of [server, indexed, legacy, translating]) if (child && child.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
+  for (const child of [server, indexed, legacy, translating, deepl]) if (child && child.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
 });
 
 // ---- No payment gateway ---------------------------------------------------------------------------------------
@@ -302,7 +302,12 @@ test('Spanish is translated automatically, corrections by hand are kept, and a t
   await request(`/api/pieces?id=${note.id}`, { method: 'DELETE', auth: true });
 
   translator = createServer((req, res) => {
-    let raw = ''; req.on('data', c => raw += c); req.on('end', () => { const q = new URLSearchParams(raw); res.setHeader('content-type', 'application/json'); res.end(JSON.stringify([[[`[${q.get('tl')}] ${q.get('q')}`, q.get('q')]]])); });
+    let raw = ''; req.on('data', c => raw += c); req.on('end', () => {
+      res.setHeader('content-type', 'application/json');
+      // DeepL speaks JSON on /v2/translate; the public Google endpoint takes a form.
+      if (req.url.endsWith('/v2/translate')) { const asked = JSON.parse(raw); assert.match(req.headers.authorization, /^DeepL-Auth-Key /); res.end(JSON.stringify({ translations: asked.text.map(t => ({ text: `[${asked.target_lang}] ${t}` })) })); return; }
+      const q = new URLSearchParams(raw); res.end(JSON.stringify([[[`[${q.get('tl')}] ${q.get('q')}`, q.get('q')]]]));
+    });
   }).listen(3018);
   await once(translator, 'listening');
   translating = launch(3019, { SITE_URL: 'http://127.0.0.1:3019', TRANSLATE_URL: 'http://127.0.0.1:3018/' });
@@ -327,6 +332,16 @@ test('Spanish is translated automatically, corrections by hand are kept, and a t
   await send('/api/pieces', 'PUT', { ...again, name: 'Aros de luna llena', translations: { ...again.translations, en: { ...again.translations.en, name: 'Moon hoops', auto: undefined } } });
   again = (await (await send('/api/pieces', 'GET')).json()).find(p => p.id === piece.id);
   assert.equal(again.translations.en.name, 'Moon hoops'); assert.equal(again.translations.fr.name, '[fr] Aros de luna llena');
+  // With a DeepL key the texts go to DeepL (subtitles keep their marker, language codes are DeepL's).
+  deepl = launch(3020, { SITE_URL: 'http://127.0.0.1:3020', DEEPL_API_KEY: 'prueba:fx', DEEPL_URL: 'http://127.0.0.1:3018/v2/translate' });
+  const deeplHost = 'http://127.0.0.1:3020'; await ready(deeplHost + '/es');
+  const deeplLogin = await fetch(deeplHost + '/api/admin/login', { method: 'POST', headers: { Origin: deeplHost, 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+  const deeplAuth = { Origin: deeplHost, 'Content-Type': 'application/json', Cookie: deeplLogin.headers.get('set-cookie').split(';')[0] };
+  const viaDeepL = await fetch(deeplHost + '/api/pieces', { method: 'POST', headers: deeplAuth, body: JSON.stringify({ ...spanish, name: 'Aros de nieve', description: 'Primer párrafo de la pieza.' + String.fromCharCode(10, 10) + '## Un subtítulo' + String.fromCharCode(10) + 'Segundo párrafo con detalles.' }) });
+  assert.equal(viaDeepL.status, 200); assert.equal((await viaDeepL.json()).warning, undefined);
+  const snow = (await (await fetch(deeplHost + '/api/pieces', { headers: deeplAuth })).json()).find(p => p.name === 'Aros de nieve');
+  assert.equal(snow.translations.pt.name, '[PT-BR] Aros de nieve'); assert.equal(snow.translations.en.name, '[EN-US] Aros de nieve'); assert.equal(snow.translations.fr.name, '[FR] Aros de nieve');
+  assert.match(snow.translations.fr.description, /## \[FR\] Un subtítulo/, 'the subtitle marker survives');
   // A new category only needs its Spanish name.
   const config = await (await send('/api/settings', 'GET')).json();
   assert.equal((await send('/api/settings', 'PUT', { ...config, categories: [...config.categories, { es: 'Pulseras de mano', en: '', pt: '', fr: '' }] })).status, 200);
