@@ -21,7 +21,14 @@ export function proxy(request: NextRequest) {
   } else {
     // Pretty, translated addresses are rendered by the internal routes ("/pt/colecao" -> "/pt/s/collection").
     const target = internalPath(pathname);
-    if (target) { const url = request.nextUrl.clone(); url.pathname = target; response = NextResponse.rewrite(url); } else response = NextResponse.next();
+    if (target) {
+      const url = request.nextUrl.clone();
+      url.pathname = target;
+      // Behind a proxy that ends TLS, X-Forwarded-Proto makes this address look like https while the server itself only
+      // speaks http: Next would then try to fetch the page from itself over TLS and fail with a 500.
+      url.protocol = 'http:';
+      response = NextResponse.rewrite(url);
+    } else response = NextResponse.next();
   }
   const privateArea = pathname.startsWith('/admin') || pathname.startsWith('/api/');
   if (!allowIndexing() || privateArea) response.headers.set('X-Robots-Tag', 'noindex, nofollow');

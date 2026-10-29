@@ -223,3 +223,10 @@ test('photo limits: size, total space and automatic cleanup of unused uploads', 
   const backups = readdirSync(path.join(dir, 'backups')); assert.equal(backups.length, 1); assert.match(backups[0], /^ursula-\d{4}-\d{2}-\d{2}\.sqlite$/);
   const copy = new DatabaseSync(path.join(dir, 'backups', backups[0]), { readOnly: true }); assert.ok(copy.prepare('SELECT count(*) c FROM pieces').get().c > 0); copy.close();
 });
+
+test('behind a TLS-terminating proxy the translated addresses still render (X-Forwarded-Proto: https)', async () => {
+  for (const url of ['/es/coleccion', '/pt/colecao', '/fr/a-propos', '/en/contact', '/es/terminos']) {
+    const r = await send(url, { headers: { 'X-Forwarded-Proto': 'https', 'X-Forwarded-For': '203.0.113.7' } });
+    assert.equal(r.status, 200, url); await r.text();
+  }
+});
