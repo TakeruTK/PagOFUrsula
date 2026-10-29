@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { dataPath, database } from './store';
 
@@ -10,8 +10,11 @@ export function backupIfDue() {
     const folder = path.join(dataPath(), 'backups');
     const file = path.join(folder, `ursula-${new Date().toISOString().slice(0, 10)}.sqlite`);
     if (existsSync(file)) return;
-    mkdirSync(folder, { recursive: true });
+    // The copies hold everything, including the password hash: only this server user may read them.
+    mkdirSync(folder, { recursive: true, mode: 0o700 });
+    chmodSync(folder, 0o700);
     database().exec(`VACUUM INTO '${file.replace(/'/g, "''")}'`);
+    chmodSync(file, 0o600);
     for (const old of readdirSync(folder).filter(f => /^ursula-\d{4}-\d{2}-\d{2}\.sqlite$/.test(f)).sort().slice(0, -KEEP_DAYS)) rmSync(path.join(folder, old), { force: true });
   } catch { /* a failed backup must never block the owner's save */ }
 }
