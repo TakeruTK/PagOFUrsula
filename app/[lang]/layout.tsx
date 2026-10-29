@@ -34,15 +34,17 @@ export default async function LangLayout({ children, params }: { children: React
   if (!isLocale(lang)) notFound();
   const dict = getDictionary(lang);
   const settings = getSettings();
-  // Google Analytics is switched on by the server environment (GA_MEASUREMENT_ID, like G-XXXXXXXXXX).
+  // Analytics is switched on by the server environment: GTM_ID (Tag Manager container, GTM-XXXXXXX) or GA_MEASUREMENT_ID (G-XXXXXXXXXX).
+  const gtmId = /^GTM-[A-Z0-9]{4,10}$/.test(process.env.GTM_ID || '') ? process.env.GTM_ID! : '';
   const gaId = /^G-[A-Z0-9]{4,14}$/.test(process.env.GA_MEASUREMENT_ID || '') ? process.env.GA_MEASUREMENT_ID! : '';
+  const tracking = !!(gtmId || gaId);
   return <html lang={htmlLang[lang]} className={`${serif.variable} ${sans.variable}`}>
     <body>
       <SiteHeader lang={lang} dict={dict} />
       {children}
       <Reveal />
-      {gaId && <Analytics id={gaId} lang={lang} dict={dict.cookies} />}
-      <SiteFooter lang={lang} dict={dict} analytics={!!gaId} social={{ instagram: settings.instagram, facebook: settings.facebook, tiktok: settings.tiktok, whatsapp: settings.whatsapp, email: settings.contactEmail }} />
+      {tracking && <Analytics gaId={gaId} gtmId={gtmId} lang={lang} dict={dict.cookies} />}
+      <SiteFooter lang={lang} dict={dict} analytics={tracking} social={{ instagram: settings.instagram, facebook: settings.facebook, tiktok: settings.tiktok, whatsapp: settings.whatsapp, email: settings.contactEmail }} />
     </body>
   </html>;
 }

@@ -249,7 +249,11 @@ test('Search Console file is served as-is and Analytics stays off until it is co
   assert.ok(on.includes('cookie-settings'), 'footer button to change the choice');
   assert.ok(!on.includes('gtag/js'), 'the script is not loaded before the visitor accepts');
   analytics.kill(); await once(analytics, 'exit');
-  analytics = await start(3033, { GA_MEASUREMENT_ID: 'G-<script>alert(1)</script>', SITE_URL: 'http://127.0.0.1:3033' }, dir);
+  analytics = await start(3033, { GTM_ID: 'GTM-W2T9NZLJ', SITE_URL: 'http://127.0.0.1:3033' }, dir);
+  const tagManager = await (await fetch('http://127.0.0.1:3033/en')).text();
+  assert.ok(tagManager.includes('cookie-settings'), 'Tag Manager is also behind the cookie choice'); assert.ok(!tagManager.includes('gtm.js'), 'and nothing loads before accepting');
+  analytics.kill(); await once(analytics, 'exit');
+  analytics = await start(3033, { GA_MEASUREMENT_ID: 'G-<script>alert(1)</script>', GTM_ID: 'GTM-<b>x</b>', SITE_URL: 'http://127.0.0.1:3033' }, dir);
   const invalid = await (await fetch('http://127.0.0.1:3033/es')).text();
   assert.ok(!invalid.includes('alert(1)') && !invalid.includes('cookie-settings'), 'an invalid id is ignored');
 });

@@ -12,10 +12,10 @@ const stored = (): Choice | null => { try { const v = localStorage.getItem(KEY);
 const forgetGoogleCookies = () => { for (const name of document.cookie.split(';').map(c => c.split('=')[0].trim()).filter(n => n === '_ga' || n.startsWith('_ga_'))) document.cookie = `${name}=; Max-Age=0; Path=/`; };
 
 /**
- * Google Analytics, loaded only after the visitor accepts. Rejecting (or not answering) loads nothing and sets no
+ * Google Analytics (directly, or through a Google Tag Manager container), loaded only after the visitor accepts. Rejecting (or not answering) loads nothing and sets no
  * cookies, which is what the privacy rules of Europe and Chile expect. The choice can be changed from the footer.
  */
-export default function Analytics({ id, lang, dict }: { id: string; lang: Locale; dict: Dictionary['cookies'] }) {
+export default function Analytics({ gaId, gtmId, lang, dict }: { gaId: string; gtmId: string; lang: Locale; dict: Dictionary['cookies'] }) {
   const [choice, setChoice] = useState<Choice | null>(null);
   const [asking, setAsking] = useState(false);
 
@@ -34,10 +34,13 @@ export default function Analytics({ id, lang, dict }: { id: string; lang: Locale
   };
 
   return <>
-    {choice === 'granted' && <>
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="afterInteractive" />
-      <Script id="ga-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${id}',{anonymize_ip:true});`}</Script>
-    </>}
+    {choice === 'granted' && (gtmId
+      // Tag Manager owns the tags (Analytics included) once the visitor accepts.
+      ? <Script id="gtm-init" strategy="afterInteractive">{`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');`}</Script>
+      : <>
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
+        <Script id="ga-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}',{anonymize_ip:true});`}</Script>
+      </>)}
     {asking && <div className="cookie-bar" role="dialog" aria-live="polite" aria-label={dict.title}>
       <p>{dict.text} <Link href={legalPath(lang, 'privacy')}>{dict.more}</Link></p>
       <div className="cookie-actions">
