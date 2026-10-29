@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Dictionary } from '@/lib/dictionaries';
 import { mailLink } from '@/lib/contact';
 
@@ -40,18 +41,18 @@ export default function EmailLink({ email, subject = '', body = '', dict, classN
 
   return <>
     <a {...rest} className={className} href={mailLink(email, subject, body)} onClick={open}>{children}</a>
-    {help && <div className="mail-help" role="dialog" aria-modal="true" aria-label={dict.title} onClick={e => { if (e.target === e.currentTarget) setHelp(false); }}>
-      <div className="mail-help-box">
+    {help && createPortal(<div className="mail-help" role="dialog" aria-modal="true" aria-label={dict.title} onClick={e => { if (e.target === e.currentTarget) setHelp(false); }}>
+      <div className="mail-box">
+        <button type="button" className="mail-x" aria-label={dict.close} onClick={() => setHelp(false)}>×</button>
         <h3>{dict.title}</h3>
         <p>{dict.text}</p>
-        <strong className="mail-address">{email}</strong>
-        <div className="mail-actions">
-          <button type="button" className="btn solid" onClick={copy}>{copied ? dict.copied : dict.copy}</button>
-          <a className="btn" href={gmail} target="_blank" rel="noreferrer noopener">Gmail</a>
-          <a className="btn" href={outlook} target="_blank" rel="noreferrer noopener">Outlook</a>
+        <div className="mail-address">{email}</div>
+        <button type="button" className="mail-primary" onClick={copy}>{copied ? dict.copied : dict.copy}</button>
+        <div className="mail-web">
+          <a href={gmail} target="_blank" rel="noreferrer noopener">Gmail</a>
+          <a href={outlook} target="_blank" rel="noreferrer noopener">Outlook</a>
         </div>
-        <button type="button" className="mail-close" onClick={() => setHelp(false)}>{dict.close}</button>
       </div>
-    </div>}
+    </div>, document.body)}
   </>;
 }
