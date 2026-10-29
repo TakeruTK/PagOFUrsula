@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import Gallery from '@/components/gallery';
 import PieceCard from '@/components/piece-card';
 import { availabilityLabel, formatPrice, toCard, toCards } from '@/lib/catalog';
-import { mailLink, whatsappLink } from '@/lib/contact';
+import EmailLink from '@/components/email-link';
+import { whatsappLink } from '@/lib/contact';
 import { fmt, getDictionary } from '@/lib/dictionaries';
 import { homePath, isLocale, locales, pagePath, piecePath, type Locale } from '@/lib/i18n';
 import { isTranslated } from '@/lib/pieces';
@@ -85,7 +86,7 @@ export default async function PiecePage({ params }: Props) {
         </dl>
         <div className="actions">
           {settings.whatsapp && <a className="btn solid" href={whatsappLink(settings.whatsapp, message)} target="_blank" rel="noreferrer noopener">{dict.piece.ask}</a>}
-          {settings.contactEmail && <a className="btn" href={mailLink(settings.contactEmail, fmt(dict.piece.emailSubject, { name: card.name }), message)}>{dict.piece.askEmail}</a>}
+          {settings.contactEmail && <EmailLink className="btn" email={settings.contactEmail} subject={fmt(dict.piece.emailSubject, { name: card.name })} body={message} dict={dict.mail}>{dict.piece.askEmail}</EmailLink>}
           <a className={`btn ${settings.whatsapp ? '' : 'solid'}`} href={settings.instagram} target="_blank" rel="noreferrer noopener">{dict.piece.askInstagram}</a>
         </div>
         <p className="unique">{dict.piece.unique}</p>

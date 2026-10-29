@@ -109,7 +109,7 @@ test('without a WhatsApp number every piece falls back to Instagram; with one it
   assert.match(msg, new RegExp(piece.name)); assert.match(msg, new RegExp(`/es/joyas/${piece.slug}`));
   assert.match(html, /mailto:ursula@example\.com\?subject=/);
   assert.match(html, /<footer[\s\S]*href="https:\/\/wa\.me\/56912345678[^"]*"[^>]*aria-label="WhatsApp"/, 'WhatsApp icon in the footer of every page');
-  assert.match(html, /<footer[\s\S]*href="mailto:ursula@example\.com"[^>]*aria-label="Correo electrónico"/, 'email icon in the footer');
+  assert.match(html, /<footer[\s\S]*aria-label="Correo electrónico"[^>]*href="mailto:ursula@example\.com\?subject=/, 'email icon in the footer');
   assert.doesNotMatch(html, /wa-float/, 'the floating button is gone');
   assert.match(await (await request('/en')).text(), /LET.S TALK ON WHATSAPP/);
   assert.match(await (await request('/es/contacto')).text(), /wa\.me\/56912345678/);

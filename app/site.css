@@ -85,6 +85,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 .cta .btn:hover{background:var(--ink);color:#e9ebc6}
 .cta .btn.solid{background:var(--ink);color:#e9ebc6}
 .cta .btn.solid:hover{background:var(--gold-ink);border-color:var(--gold-ink);color:#fff}
+.mail-help{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:20px;background:rgba(39,43,0,.55)}
+.mail-help-box{max-width:460px;width:100%;background:#bec092;color:#272b00;padding:32px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.mail-help-box h3{font-family:var(--serif);font-weight:400;font-size:26px;margin:0 0 12px}
+.mail-help-box p{font-size:15px;margin:0 0 18px}
+.mail-address{display:block;word-break:break-all;margin-bottom:22px;font-weight:600}
+.mail-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.mail-actions .btn{padding:13px 22px}
+.mail-close{margin-top:18px;background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;font-size:13px}
 .cta-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
 .cta small{display:block;max-width:520px;margin:34px auto 0;color:var(--soft);font-size:13px}
 

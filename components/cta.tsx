@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import EmailLink from './email-link';
 import { whatsappLink } from '@/lib/contact';
 import type { Dictionary } from '@/lib/dictionaries';
 import { pagePath, type Locale } from '@/lib/i18n';
@@ -10,7 +11,7 @@ export default function Cta({ lang, dict, settings, id }: { lang: Locale; dict: 
     <h2>{dict.cta.title}</h2>
     <div className="cta-row">
       {settings.whatsapp && <a className="btn solid" href={whatsappLink(settings.whatsapp, dict.cta.whatsappMessage)} target="_blank" rel="noreferrer noopener">{dict.cta.whatsapp}</a>}
-      {settings.contactEmail && <a className="btn" href={`mailto:${settings.contactEmail}`}>{dict.cta.email}</a>}
+      {settings.contactEmail && <EmailLink className="btn" email={settings.contactEmail} subject={dict.meta.homeTitle} dict={dict.mail}>{dict.cta.email}</EmailLink>}
       {!settings.whatsapp && !settings.contactEmail && <Link className="btn solid" href={pagePath(lang, 'contact')}>{dict.home.contactLink}</Link>}
     </div>
     <small>{dict.cta.note}</small>

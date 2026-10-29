@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { mailLink, profileHandle, whatsappLink } from '@/lib/contact';
+import EmailLink from '@/components/email-link';
+import { profileHandle, whatsappLink } from '@/lib/contact';
 import { getDictionary } from '@/lib/dictionaries';
 import { homePath, isLocale, pagePath } from '@/lib/i18n';
 import { absolute, breadcrumbs, jsonLd, pageMetadata } from '@/lib/seo';
@@ -24,7 +25,7 @@ export default async function ContactPage({ params }: Props) {
   const settings = getSettings();
   const channels = [
     settings.whatsapp && { key: 'wa', title: c.whatsapp, text: c.whatsappText, label: settings.whatsapp, href: whatsappLink(settings.whatsapp, dict.cta.whatsappMessage), external: true },
-    settings.contactEmail && { key: 'mail', title: c.email, text: c.emailText, label: settings.contactEmail, href: mailLink(settings.contactEmail, dict.meta.homeTitle, ''), external: false },
+    settings.contactEmail && { key: 'mail', title: c.email, text: c.emailText, label: settings.contactEmail, href: '', external: false },
     { key: 'ig', title: c.instagram, text: c.instagramText, label: profileHandle(settings.instagram), href: settings.instagram, external: true },
     settings.facebook && { key: 'fb', title: c.facebook, text: c.facebookText, label: profileHandle(settings.facebook), href: settings.facebook, external: true },
     settings.tiktok && { key: 'tt', title: c.tiktok, text: c.tiktokText, label: profileHandle(settings.tiktok), href: settings.tiktok, external: true },
@@ -41,12 +42,12 @@ export default async function ContactPage({ params }: Props) {
       <p>{c.intro}</p>
     </header>
     <section className="contact-cards" aria-label={c.channels}>
-      {channels.map(ch => <a key={ch.key} data-reveal className="contact-card" href={ch.href} {...(ch.external ? { target: '_blank', rel: 'noreferrer noopener' } : {})}>
-        <span className="eyebrow">{ch.title}</span>
-        <strong>{ch.label}</strong>
-        <small>{ch.text}</small>
-        <span className="contact-open">{c.open} →</span>
-      </a>)}
+      {channels.map(ch => {
+        const inner = <><span className="eyebrow">{ch.title}</span><strong>{ch.label}</strong><small>{ch.text}</small><span className="contact-open">{c.open} →</span></>;
+        return ch.key === 'mail'
+          ? <EmailLink key={ch.key} data-reveal className="contact-card" email={ch.label} subject={dict.meta.homeTitle} dict={dict.mail}>{inner}</EmailLink>
+          : <a key={ch.key} data-reveal className="contact-card" href={ch.href} {...(ch.external ? { target: '_blank', rel: 'noreferrer noopener' } : {})}>{inner}</a>;
+      })}
     </section>
     <section className="section steps-section">
       <div className="narrow">

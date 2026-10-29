@@ -1,4 +1,5 @@
 import { Mail } from 'lucide-react';
+import EmailLink from './email-link';
 import { whatsappLink } from '@/lib/contact';
 import type { Dictionary } from '@/lib/dictionaries';
 
@@ -17,6 +18,6 @@ export default function SocialIcons({ social, dict }: { social: Social; dict: Di
     {social.whatsapp && <a href={whatsappLink(social.whatsapp, dict.cta.whatsappMessage)} aria-label="WhatsApp" title="WhatsApp" {...external}><Glyph d={WHATSAPP} /></a>}
     {social.facebook && <a href={social.facebook} aria-label="Facebook" title="Facebook" {...external}><Stroke><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></Stroke></a>}
     {social.tiktok && <a href={social.tiktok} aria-label="TikTok" title="TikTok" {...external}><Glyph d={TIKTOK} /></a>}
-    {social.email && <a href={`mailto:${social.email}`} aria-label={dict.footer.email} title={dict.footer.email}><Mail strokeWidth={1.6} aria-hidden /></a>}
+    {social.email && <EmailLink email={social.email} subject={dict.meta.homeTitle} dict={dict.mail} aria-label={dict.footer.email} title={dict.footer.email}><Mail strokeWidth={1.6} aria-hidden /></EmailLink>}
   </div>;
 }
