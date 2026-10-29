@@ -3,6 +3,7 @@ import { protect } from '@/lib/admin-auth';
 import { pieceSchema, uniqueSlug } from '@/lib/pieces';
 import { jsonBody,invalid,translationNote } from '@/lib/http';
 import { translatePiece } from '@/lib/autotranslate';
+import { notifyPieceChange } from '@/lib/indexnow';
 import type { Piece } from '@/lib/pieces';
 export const dynamic='force-dynamic';
 export async function GET(request:Request){const denied=await protect(request);if(denied)return denied;return Response.json(getPieces(true),{headers:{'Cache-Control':'no-store'}});}
@@ -25,7 +26,8 @@ async function save(request:Request,update:boolean){
     const translated=await translatePiece({...p,id,slug:p.slug} as Piece);
     const result=update?database().prepare('UPDATE pieces SET content=? WHERE id=?').run(JSON.stringify(translated.value),id):database().prepare('INSERT INTO pieces VALUES (?,?)').run(id,JSON.stringify(translated.value));
     if(!result.changes)return Response.json({error:'La pieza ya no existe.'},{status:404});
+    notifyPieceChange(translated.value);
     return Response.json({id,warning:translationNote(translated.failed)});
   }catch(e){return invalid(e);}
 }
-export async function DELETE(request:Request){const denied=await protect(request);if(denied)return denied;const id=new URL(request.url).searchParams.get('id');if(!id)return Response.json({error:'Falta la pieza.'},{status:400});database().prepare('DELETE FROM pieces WHERE id=?').run(id);return Response.json({ok:true});}
+export async function DELETE(request:Request){const denied=await protect(request);if(denied)return denied;const id=new URL(request.url).searchParams.get('id');if(!id)return Response.json({error:'Falta la pieza.'},{status:400});const gone=getPieces(true).find(p=>p.id===id);database().prepare('DELETE FROM pieces WHERE id=?').run(id);if(gone)notifyPieceChange(gone);return Response.json({ok:true});}

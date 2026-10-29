@@ -6,13 +6,15 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync } from 'node:fs';
 import { randomBytes, pbkdf2Sync } from 'node:crypto';
 import { once } from 'node:events';
+import { createServer } from 'node:http';
 import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 
 const port = 3031, base = `http://127.0.0.1:${port}`;
 const username = 'sec-atelier', password = randomBytes(20).toString('hex'), salt = randomBytes(16).toString('hex');
 const hash = `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex')}`;
-let server, small, analytics, cookie = '', output = '', dataDir;
+const pings = [];
+let server, small, analytics, indexnow, cookie = '', output = '', dataDir;
 
 const send = (url, { method = 'GET', body, auth = false, origin = base, headers = {}, raw } = {}) => fetch(base + url, {
   method, redirect: 'manual',
@@ -32,9 +34,12 @@ const start = async (serverPort, env, dir) => {
 before(async () => {
   mkdirSync('test-results', { recursive: true });
   dataDir = mkdtempSync(path.resolve('test-results', 'security-'));
-  server = await start(port, {}, dataDir);
+  indexnow = createServer((req, res) => { let raw = ''; req.on('data', c => raw += c); req.on('end', () => { pings.push(JSON.parse(raw)); res.end('ok'); }); }).listen(3034);
+  await once(indexnow, 'listening');
+  server = await start(port, { INDEXNOW_URL: 'http://127.0.0.1:3034/indexnow' }, dataDir);
 });
 after(async () => {
+  indexnow?.close();
   for (const child of [server, small, analytics]) if (child?.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
 });
 const login = async () => { const r = await send('/api/admin/login', { method: 'POST', body: { username, password } }); assert.equal(r.status, 200); cookie = r.headers.get('set-cookie').split(';')[0]; return r; };
@@ -247,4 +252,25 @@ test('Search Console file is served as-is and Analytics stays off until it is co
   analytics = await start(3033, { GA_MEASUREMENT_ID: 'G-<script>alert(1)</script>', SITE_URL: 'http://127.0.0.1:3033' }, dir);
   const invalid = await (await fetch('http://127.0.0.1:3033/es')).text();
   assert.ok(!invalid.includes('alert(1)') && !invalid.includes('cookie-settings'), 'an invalid id is ignored');
+});
+
+test('IndexNow: the key is published and search engines are told about each change', async () => {
+  const key = '486cdd156fd6366edf5744f3c9af62c5';
+  const file = await send(`/${key}.txt`); assert.equal(file.status, 200); assert.equal((await file.text()).trim(), key);
+  // The password was changed by the earlier test.
+  const again = await send('/api/admin/login', { method: 'POST', body: { username, password: 'una-clave-nueva-muy-larga-1' } }); assert.equal(again.status, 200); cookie = again.headers.get('set-cookie').split(';')[0];
+  pings.length = 0;
+  const created = await send('/api/pieces', { method: 'POST', auth: true, body: piece({ name: 'Pieza indexnow' }) }); assert.equal(created.status, 200);
+  const id = (await created.json()).id;
+  const slug = (await (await send('/api/pieces', { auth: true })).json()).find(p => p.id === id).slug;
+  for (let i = 0; i < 30 && !pings.length; i++) await new Promise(r => setTimeout(r, 100));
+  assert.ok(pings.length, 'a notification was sent');
+  const ping = pings.at(-1);
+  assert.equal(ping.host, 'ursulaalcainoorfebreria.com'); assert.equal(ping.key, key); assert.equal(ping.keyLocation, `https://ursulaalcainoorfebreria.com/${key}.txt`);
+  assert.ok(ping.urlList.includes(`https://ursulaalcainoorfebreria.com/es/joyas/${slug}`), 'the new piece address'); assert.ok(ping.urlList.includes('https://ursulaalcainoorfebreria.com/es/coleccion'), 'and the collection that lists it');
+  assert.ok(ping.urlList.every(u => u.startsWith('https://ursulaalcainoorfebreria.com/')), 'only addresses of this site');
+  pings.length = 0;
+  assert.equal((await send(`/api/pieces?id=${id}`, { method: 'DELETE', auth: true })).status, 200);
+  for (let i = 0; i < 30 && !pings.length; i++) await new Promise(r => setTimeout(r, 100));
+  assert.ok(pings.at(-1)?.urlList.includes(`https://ursulaalcainoorfebreria.com/es/joyas/${slug}`), 'deleting also notifies so the page leaves the index');
 });
