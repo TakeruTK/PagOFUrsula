@@ -22,7 +22,7 @@ export default function SiteHeader({ lang, dict }: { lang: Locale; dict: Diction
   useEffect(() => setOpen(false), [pathname]);
 
   const remember = (locale: string) => { try { document.cookie = `NEXT_LOCALE=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`; } catch { /* ignore */ } };
-  const language = <div className="lang" role="group" aria-label={dict.nav.language}>{locales.map(l => <Link key={l} href={switchLocalePath(pathname, l)} hrefLang={l} lang={l} title={nativeName[l]} aria-label={nativeName[l]} aria-current={l === lang ? 'true' : undefined} onClick={() => remember(l)}>{l.toUpperCase()}</Link>)}</div>;
+  const language = <div className="lang" role="group" aria-label={dict.nav.language}>{locales.map(l => <Link key={l} href={switchLocalePath(pathname, l)} hrefLang={l} lang={l} title={nativeName[l]} aria-label={`${l.toUpperCase()} · ${nativeName[l]}`} aria-current={l === lang ? 'true' : undefined} onClick={() => remember(l)}>{l.toUpperCase()}</Link>)}</div>;
 
   return <>
     <nav className={`nav ${scrolled ? 'scrolled' : ''}`} aria-label={dict.nav.menuTitle}>

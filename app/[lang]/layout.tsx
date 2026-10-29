@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Outfit } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '../site.css';
+import Analytics from '@/components/analytics';
 import Reveal from '@/components/reveal';
 import SiteFooter from '@/components/site-footer';
 import SiteHeader from '@/components/site-header';
@@ -33,12 +34,15 @@ export default async function LangLayout({ children, params }: { children: React
   if (!isLocale(lang)) notFound();
   const dict = getDictionary(lang);
   const settings = getSettings();
+  // Google Analytics is switched on by the server environment (GA_MEASUREMENT_ID, like G-XXXXXXXXXX).
+  const gaId = /^G-[A-Z0-9]{4,14}$/.test(process.env.GA_MEASUREMENT_ID || '') ? process.env.GA_MEASUREMENT_ID! : '';
   return <html lang={htmlLang[lang]} className={`${serif.variable} ${sans.variable}`}>
     <body>
       <SiteHeader lang={lang} dict={dict} />
       {children}
       <Reveal />
-      <SiteFooter lang={lang} dict={dict} social={{ instagram: settings.instagram, facebook: settings.facebook, tiktok: settings.tiktok, whatsapp: settings.whatsapp, email: settings.contactEmail }} />
+      {gaId && <Analytics id={gaId} lang={lang} dict={dict.cookies} />}
+      <SiteFooter lang={lang} dict={dict} analytics={!!gaId} social={{ instagram: settings.instagram, facebook: settings.facebook, tiktok: settings.tiktok, whatsapp: settings.whatsapp, email: settings.contactEmail }} />
     </body>
   </html>;
 }

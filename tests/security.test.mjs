@@ -12,7 +12,7 @@ import path from 'node:path';
 const port = 3031, base = `http://127.0.0.1:${port}`;
 const username = 'sec-atelier', password = randomBytes(20).toString('hex'), salt = randomBytes(16).toString('hex');
 const hash = `pbkdf2-sha256:100000:${salt}:${pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex')}`;
-let server, small, cookie = '', output = '', dataDir;
+let server, small, analytics, cookie = '', output = '', dataDir;
 
 const send = (url, { method = 'GET', body, auth = false, origin = base, headers = {}, raw } = {}) => fetch(base + url, {
   method, redirect: 'manual',
@@ -35,7 +35,7 @@ before(async () => {
   server = await start(port, {}, dataDir);
 });
 after(async () => {
-  for (const child of [server, small]) if (child?.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
+  for (const child of [server, small, analytics]) if (child?.exitCode === null) { child.kill(); await Promise.race([once(child, 'exit'), new Promise(r => setTimeout(r, 3000))]); }
 });
 const login = async () => { const r = await send('/api/admin/login', { method: 'POST', body: { username, password } }); assert.equal(r.status, 200); cookie = r.headers.get('set-cookie').split(';')[0]; return r; };
 
@@ -229,4 +229,22 @@ test('behind a TLS-terminating proxy the translated addresses still render (X-Fo
     const r = await send(url, { headers: { 'X-Forwarded-Proto': 'https', 'X-Forwarded-For': '203.0.113.7' } });
     assert.equal(r.status, 200, url); await r.text();
   }
+});
+
+test('Search Console file is served as-is and Analytics stays off until it is configured and accepted', async () => {
+  const file = await send('/google21fbcf3f19f788d4.html');
+  assert.equal(file.status, 200); assert.equal((await file.text()).trim(), 'google-site-verification: google21fbcf3f19f788d4.html');
+  assert.notEqual(file.headers.get('x-robots-tag'), 'noindex, nofollow', 'search engines may read the verification file');
+  const plain = await (await send('/es')).text();
+  assert.ok(!plain.includes('gtag/js') && !plain.includes('cookie-settings'), 'no tracking and no cookie button without GA_MEASUREMENT_ID');
+  assert.match((await send('/es')).headers.get('content-security-policy'), /googletagmanager\.com/, 'CSP is ready for Analytics');
+  const dir = mkdtempSync(path.resolve('test-results', 'analytics-'));
+  analytics = await start(3033, { GA_MEASUREMENT_ID: 'G-TEST12345', SITE_URL: 'http://127.0.0.1:3033' }, dir);
+  const on = await (await fetch('http://127.0.0.1:3033/en')).text();
+  assert.ok(on.includes('cookie-settings'), 'footer button to change the choice');
+  assert.ok(!on.includes('gtag/js'), 'the script is not loaded before the visitor accepts');
+  analytics.kill(); await once(analytics, 'exit');
+  analytics = await start(3033, { GA_MEASUREMENT_ID: 'G-<script>alert(1)</script>', SITE_URL: 'http://127.0.0.1:3033' }, dir);
+  const invalid = await (await fetch('http://127.0.0.1:3033/es')).text();
+  assert.ok(!invalid.includes('alert(1)') && !invalid.includes('cookie-settings'), 'an invalid id is ignored');
 });
