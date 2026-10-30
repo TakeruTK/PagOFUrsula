@@ -76,7 +76,7 @@ const en: Dictionary = {
     collection: { metaTitle: 'Handmade jewelry collection', metaDescription: 'Handmade earrings, rings and pendants by Ursula Alcaino. One-of-a-kind or very limited pieces inspired by nature, metal and color.', intro: 'Handmade earrings, rings and pendants. Every piece is one of a kind or a very limited run.' },
     about: { metaTitle: 'My story as a silversmith', metaDescription: 'Twenty years creating signature jewelry: the story of Ursula Alcaino, silversmith, and how her vision of jewelry was born.', imageAlt: 'Detail of a jewelry piece by Ursula Alcaino', more: 'SEE THE COLLECTION' },
     contact: {
-      title: 'Let’s talk', metaTitle: 'Contact', metaDescription: 'Write to Ursula Alcaino on WhatsApp, email or Instagram to ask about a piece or talk through an idea.',
+      title: 'Let’s talk', metaTitle: 'Contact us', metaDescription: 'Write to Ursula Alcaino on WhatsApp, email or Instagram to ask about a piece or talk through an idea.',
       intro: 'Interested in a piece, or have an idea that connects with my style? Write to me and we will talk it through.',
       stepsTitle: 'How to get your piece',
       steps: [
@@ -169,7 +169,7 @@ const fr: Dictionary = {
     collection: { metaTitle: 'Collection de bijoux faits main', metaDescription: 'Boucles d’oreilles, bagues et pendentifs faits main par Ursula Alcaino. Pièces uniques ou en très petite série, inspirées par la nature, le métal et la couleur.', intro: 'Boucles d’oreilles, bagues et pendentifs faits main. Chaque pièce est unique ou en très petite série.' },
     about: { metaTitle: 'Mon histoire d’orfèvre', metaDescription: 'Vingt ans de création de bijoux d’auteur : l’histoire d’Ursula Alcaino, orfèvre, et la naissance de son regard sur la joaillerie.', imageAlt: 'Détail d’un bijou d’Ursula Alcaino', more: 'VOIR LA COLLECTION' },
     contact: {
-      title: 'Parlons-en', metaTitle: 'Contact', metaDescription: 'Écrivez à Ursula Alcaino sur WhatsApp, par e-mail ou sur Instagram pour vous renseigner sur une pièce ou partager une idée.',
+      title: 'Parlons-en', metaTitle: 'Nous contacter', metaDescription: 'Écrivez à Ursula Alcaino sur WhatsApp, par e-mail ou sur Instagram pour vous renseigner sur une pièce ou partager une idée.',
       intro: 'Une pièce vous intéresse, ou vous avez une idée qui rejoint mon style ? Écrivez-moi et nous en parlons.',
       stepsTitle: 'Comment obtenir votre pièce',
       steps: [
