@@ -9,7 +9,7 @@ import Tilt from './tilt';
 export default function PieceCard({ piece: p, lang, dict, showPrices, eager = false }: { piece: Card; lang: Locale; dict: Dictionary; showPrices: boolean; eager?: boolean }) {
   const material = p.material && p.material !== 'Por confirmar' && p.material !== 'To be confirmed' ? p.material : p.category;
   return <Link className="card" data-reveal href={piecePath(lang, p.slug)} aria-label={fmt(dict.collection.view, { name: p.name })}>
-    <Tilt><div className="card-image"><Photo photo={p.images[0]} alt={p.images[0].caption || p.name} eager={eager} />{p.availability !== 'Disponible' && <span className="card-tag">{availabilityLabel(p, dict)}</span>}</div></Tilt>
+    <Tilt><div className="card-image"><Photo photo={p.images[0]} alt={p.images[0].caption || p.name} eager={eager} sizes="(max-width: 640px) 92vw, (max-width: 1100px) 45vw, 380px" />{p.availability !== 'Disponible' && <span className="card-tag">{availabilityLabel(p, dict)}</span>}</div></Tilt>
     <div className="card-text">
       <span className="eyebrow">{material}</span>
       <h3>{p.name}</h3>

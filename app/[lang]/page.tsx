@@ -6,6 +6,7 @@ import HeroScene from '@/components/hero-scene';
 import PieceCard from '@/components/piece-card';
 import Photo from '@/components/photo';
 import { toCards } from '@/lib/catalog';
+import { resized, srcSetFor } from '@/lib/image';
 import { getDictionary } from '@/lib/dictionaries';
 import { homePath, isLocale, locales, pagePath, type Locale } from '@/lib/i18n';
 import { initialPieces } from '@/lib/seed';
@@ -54,10 +55,10 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   return <main>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd([organization, website]) }} />
     <header className="hero">
-      <div className="hero-photo" aria-hidden><Photo photo={cover} alt="" eager /></div>
+      <div className="hero-photo" aria-hidden><Photo photo={cover} alt="" eager sizes="100vw" /></div>
       <HeroScene photos={sceneImages} />
       <div className="hero-inner">
-        <h1 className="hero-logo"><img src="/brand/logo-light.png" alt={dict.site.name} width="1000" height="572" fetchPriority="high" /></h1>
+        <h1 className="hero-logo"><img src={resized('/brand/logo-light.png', 640)} srcSet={srcSetFor('/brand/logo-light.png', [384, 640, 828])} sizes="(max-width: 700px) 80vw, 460px" alt={dict.site.name} width="1000" height="572" fetchPriority="high" /></h1>
         <span className="hero-rule" />
         <span className="eyebrow">{dict.hero.kicker}</span>
         <p className="hero-tagline">{text.headline}</p>

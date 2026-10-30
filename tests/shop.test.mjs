@@ -159,7 +159,7 @@ test('language negotiation and localized pages with hreflang, canonical and stru
   assert.match((await request('/', { headers: { 'Accept-Language': 'ja', Cookie: 'NEXT_LOCALE=es' } })).headers.get('location'), /\/es$/);
   const home = await (await request('/en')).text();
   assert.match(home, /<html lang="en"/); assert.match(home, /rel="canonical" href="http:\/\/127\.0\.0\.1:3013\/en"/); assert.match(home, /hrefLang="es" href="http:\/\/127\.0\.0\.1:3013\/es"/); assert.match(home, /hrefLang="x-default"/); assert.match(home, /"@type":"Organization"/);
-  assert.match(home, /<h1 class="hero-logo"><img src="\/brand\/logo-light\.png" alt="Ursula Alcaino · Orfebrería"/); assert.match(home, /href="\/en\/collection"/); assert.match(home, /href="\/en\/about"/); assert.match(home, /href="\/en\/contact"/);
+  assert.match(home, /<h1 class="hero-logo"><img src="\/_next\/image\?url=%2Fbrand%2Flogo-light.png&amp;w=640&amp;q=75"[^>]*alt="Ursula Alcaino · Orfebrería"/); assert.match(home, /href="\/en\/collection"/); assert.match(home, /href="\/en\/about"/); assert.match(home, /href="\/en\/contact"/);
   const piece = await request(`/en/jewelry/${pieces[0].slug}`); const html = await piece.text();
   assert.equal(piece.status, 200); assert.match(html, /"@type":"Product"/); assert.match(html, /<h1>Sendero earrings<\/h1>/);
   assert.match(html, new RegExp(`hrefLang="es" href="http://127.0.0.1:3013/es/joyas/${pieces[0].slug}"`)); assert.match(html, /"@type":"BreadcrumbList"/);
@@ -212,10 +212,10 @@ test('the owner can choose the home photos: they become public only when used, a
   assert.equal((await request('/api/settings', { method: 'PUT', auth: true, origin: 'https://untrusted.example', body: { ...current, images } })).status, 403);
   assert.equal((await request('/api/settings', { method: 'PUT', auth: true, body: { ...current, images } })).status, 200);
   assert.equal((await request(heroUrl)).status, 200); assert.equal((await request(aboutUrl)).status, 200);
-  const about = await (await request('/es/sobre-mi')).text(); assert.ok(about.includes(aboutUrl)); assert.match(about, /alt="Taller de Ursula"/);
+  const about = await (await request('/es/sobre-mi')).text(); assert.ok(about.includes(encodeURIComponent(aboutUrl))); assert.match(about, /alt="Taller de Ursula"/);
   assert.equal((await request('/api/settings', { method: 'PUT', auth: true, body: { ...current, images: { hero: [], about: null } } })).status, 200);
   assert.equal((await request(aboutUrl)).status, 404, 'removed from the page, the photo is private again');
-  assert.ok(!(await (await request('/es/sobre-mi')).text()).includes(aboutUrl));
+  assert.ok(!(await (await request('/es/sobre-mi')).text()).includes(encodeURIComponent(aboutUrl)));
 });
 
 // ---- Databases created by the old payment shop ---------------------------------------------------------------------

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { resized } from '@/lib/image';
 import type { Photo } from '@/lib/pieces';
 
 // Card slots as fractions of the visible half-width/half-height at the card plane, so the composition
@@ -18,7 +19,7 @@ const CARD_HEIGHT = 2.5;
 const REF_HALF_HEIGHT = 4.22; // half of the visible height of the reference 16:9 layout (camera at z = 11)
 
 /** Draws the part of a photograph that the piece uses (the same crop the flat version shows) onto a canvas. */
-function loadTexture(photo: Photo, maxSide = 640): Promise<{ texture: THREE.CanvasTexture; aspect: number }> {
+function loadTexture(photo: Photo, maxSide: number): Promise<{ texture: THREE.CanvasTexture; aspect: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.decoding = 'async';
@@ -35,11 +36,12 @@ function loadTexture(photo: Photo, maxSide = 640): Promise<{ texture: THREE.Canv
       canvas.getContext('2d')!.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = 4;
+      texture.anisotropy = 2;
       resolve({ texture, aspect: canvas.width / canvas.height });
     };
     img.onerror = reject;
-    img.src = photo.url;
+    // The server's resized copy is a few dozen KB; the original (with a crop) is only needed for the reference images.
+    img.src = photo.crop ? photo.url : resized(photo.url, maxSide <= 384 ? 384 : 640);
   });
 }
 
@@ -50,11 +52,15 @@ export default function Hero3D({ photos, onReady }: { photos: Photo[]; onReady?:
     const host = mount.current;
     if (!host) return;
     let renderer: THREE.WebGLRenderer;
-    try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch { return; }
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // Phones get a lighter render: fewer pixels and fewer dust points.
+    // Phones get a lighter render: fewer pixels, no edge smoothing and fewer dust points.
     const small = Math.min(window.innerWidth, window.innerHeight) < 600;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, small ? 1.5 : 1.75));
+    try { renderer = new THREE.WebGLRenderer({ antialias: !small, alpha: true }); } catch { return; }
+    // Without a graphics card the browser draws in software, which would freeze the page: keep the flat photo hero.
+    const gl = renderer.getContext();
+    const debug = gl.getExtension('WEBGL_debug_renderer_info');
+    if (/swiftshader|llvmpipe|software|basic render/i.test(debug ? String(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL)) : '')) { renderer.dispose(); return; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, small ? 1 : 1.5));
     renderer.setClearColor(0x000000, 0);
     host.appendChild(renderer.domElement);
     renderer.domElement.setAttribute('aria-hidden', 'true');
@@ -98,7 +104,7 @@ export default function Hero3D({ photos, onReady }: { photos: Photo[]; onReady?:
       }
     };
 
-    Promise.all(photos.slice(0, WIDE_SLOTS.length).map(p => loadTexture(p).catch(() => null))).then(results => {
+    Promise.all(photos.slice(0, small ? TALL_SLOTS.length : WIDE_SLOTS.length).map(p => loadTexture(p, small ? 384 : 640).catch(() => null))).then(results => {
       if (disposed) { results.forEach(r => r?.texture.dispose()); return; }
       results.forEach((result, i) => {
         if (!result) return;
@@ -149,10 +155,13 @@ export default function Hero3D({ photos, onReady }: { photos: Photo[]; onReady?:
     io.observe(host);
 
     const clock = new THREE.Clock();
-    let frame = 0, last = 0;
-    const render = () => {
+    // The motion is slow and soft: 30 images a second look the same and cost half the work.
+    const gap = 1000 / 30;
+    let frame = 0, last = 0, drawn = 0;
+    const render = (now = 0) => {
       frame = requestAnimationFrame(render);
-      if (!visible || document.hidden) return;
+      if (!visible || document.hidden || now - drawn < gap) return;
+      drawn = now;
       const t = clock.getElapsedTime();
       const dt = Math.min(t - last, 0.05); last = t;
       pointer.x += (pointer.tx - pointer.x) * 0.045; pointer.y += (pointer.ty - pointer.y) * 0.045;

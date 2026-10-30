@@ -16,6 +16,10 @@ const config: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   devIndicators: false,
   poweredByHeader: false,
+  // Photos and logos are served resized and as WebP, cached for a year (their addresses change when the picture changes).
+  images: { formats: ['image/webp'], minimumCacheTTL: 31536000, deviceSizes: [480, 640, 750, 828, 1080, 1200, 1920], imageSizes: [96, 128, 256, 384] },
+  // The page styles travel inside the HTML instead of a separate file that blocks the first paint.
+  experimental: { inlineCss: true },
   serverExternalPackages: ['node:sqlite'],
   async headers() {
     return [{ source: '/:path*', headers: security }];

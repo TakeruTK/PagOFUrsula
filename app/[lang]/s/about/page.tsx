@@ -39,7 +39,7 @@ export default async function AboutPage({ params }: Props) {
       <h1>{dict.about.title}</h1>
     </header>
     <section className="about-grid">
-      <Tilt max={7}><div className="about-photo"><Photo photo={photo} alt={settings.images.about?.caption || dict.pages.about.imageAlt} eager /></div></Tilt>
+      <Tilt max={7}><div className="about-photo"><Photo photo={photo} alt={settings.images.about?.caption || dict.pages.about.imageAlt} eager sizes="(max-width: 900px) 92vw, 45vw" /></div></Tilt>
       <div className="about-text" data-reveal>
         {paragraphs.map((paragraph, i) => paragraph.startsWith('## ') ? <h2 key={i}>{paragraph.slice(3)}</h2> : <p key={i} className={i === 0 ? 'lead' : undefined}>{paragraph}</p>)}
         <Link className="btn" href={pagePath(lang, 'collection')}>{dict.pages.about.more}</Link>

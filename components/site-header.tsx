@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import type { Dictionary } from '@/lib/dictionaries';
 import { locales, nativeName, pagePath, prettyPath, switchLocalePath, type Locale } from '@/lib/i18n';
+import { resized } from '@/lib/image';
 
 export default function SiteHeader({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const pathname = prettyPath(usePathname());
@@ -26,7 +27,7 @@ export default function SiteHeader({ lang, dict }: { lang: Locale; dict: Diction
 
   return <>
     <nav className={`nav ${scrolled ? 'scrolled' : ''}`} aria-label={dict.nav.menuTitle}>
-      <Link className="brand-lockup" href={home} aria-label={`${dict.site.name} · ${dict.nav.home}`}><img src="/brand/monogram-dark.png" alt="" width="43" height="34" /><span className="wordmark">ursula alcaino</span></Link>
+      <Link className="brand-lockup" href={home} aria-label={`${dict.site.name} · ${dict.nav.home}`}><img src={resized('/brand/monogram-dark.png', 96)} srcSet={`${resized('/brand/monogram-dark.png', 96)} 1x, ${resized('/brand/monogram-dark.png', 128)} 2x`} alt="" width="43" height="34" /><span className="wordmark">ursula alcaino</span></Link>
       <div className="nav-links">{links.map(([name, href]) => <Link key={href} href={href} aria-current={pathname === href ? 'page' : undefined}>{name}</Link>)}{language}</div>
       <button className="menu-button" aria-label={open ? dict.nav.close : dict.nav.menu} aria-expanded={open} onClick={() => setOpen(o => !o)}>{open ? <X size={22} strokeWidth={1.4} /> : <Menu size={22} strokeWidth={1.4} />}</button>
     </nav>

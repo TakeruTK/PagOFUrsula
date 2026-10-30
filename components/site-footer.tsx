@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { fmt, type Dictionary } from '@/lib/dictionaries';
+import { resized, srcSetFor } from '@/lib/image';
 import { legalPath, pagePath, type Locale } from '@/lib/i18n';
 import { CookieSettings } from './analytics';
 import SocialIcons, { type Social } from './social-icons';
 
 export default function SiteFooter({ lang, dict, social, analytics }: { lang: Locale; dict: Dictionary; social: Social; analytics: boolean }) {
   return <footer className="footer">
-    <Link className="footer-logo" href={`/${lang}`}><img src="/brand/logo-dark.png" alt={dict.site.name} width="1000" height="572" loading="lazy" /></Link>
+    <Link className="footer-logo" href={`/${lang}`}><img src={resized('/brand/logo-dark.png', 640)} srcSet={srcSetFor('/brand/logo-dark.png', [384, 640])} sizes="(max-width: 700px) 70vw, 320px" alt={dict.site.name} width="1000" height="572" loading="lazy" /></Link>
     <SocialIcons social={social} dict={dict} />
     <nav aria-label="Footer">
       <Link href={pagePath(lang, 'collection')}>{dict.nav.collection}</Link>

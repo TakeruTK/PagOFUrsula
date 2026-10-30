@@ -126,19 +126,24 @@ test('uploads accept only real JPG, PNG and WebP and nothing else', async () => 
 
 test('photos of drafts and unused uploads are private; published ones are cacheable and sniff-proof', async () => {
   await login();
+  const viaResizer = (u, w = 640) => send(`/_next/image?url=${encodeURIComponent(u)}&w=${w}&q=75`);
   const form = new FormData(); form.append('file', new Blob([Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), randomBytes(64)])], { type: 'image/png' }), 'a.png');
   const { url } = await (await fetch(base + '/api/photos', { method: 'POST', headers: { Origin: base, Cookie: cookie }, body: form })).json();
   assert.equal((await send(url)).status, 404, 'unattached upload is not public');
   assert.equal((await send(url, { auth: true })).status, 200, 'the owner can see it');
   const draft = await send('/api/pieces', { method: 'POST', auth: true, body: piece({ name: 'Borrador privado', status: 'Borrador', images: [{ url, caption: '' }] }) }); assert.equal(draft.status, 200);
   assert.equal((await send(url)).status, 404, 'draft photo is not public');
+  assert.notEqual((await viaResizer(url)).status, 200, 'the resizer does not reveal a draft photo');
   const id = (await draft.json()).id;
   const slug = (await (await send('/api/pieces', { auth: true })).json()).find(p => p.id === id).slug;
   assert.equal((await send(`/es/joyas/${slug}`)).status, 404, 'draft page is not public');
   assert.ok(!(await (await send('/sitemap.xml')).text()).includes(slug), 'draft is not in the sitemap');
   await send('/api/pieces', { method: 'PUT', auth: true, body: { ...piece({ name: 'Borrador privado', images: [{ url, caption: '' }] }), id, slug } });
   const open = await send(url);
-  assert.equal(open.status, 200); assert.match(open.headers.get('cache-control'), /immutable/); assert.equal(open.headers.get('x-content-type-options'), 'nosniff'); assert.equal(open.headers.get('content-type'), 'image/png');
+  assert.equal(open.status, 200); assert.match(open.headers.get('cache-control'), /immutable/);
+  assert.equal((await viaResizer(url, 640)).status, 200, 'published photo is available resized');
+  assert.equal((await viaResizer(url, 999)).status, 400, 'only the allowed widths are served');
+  assert.equal((await viaResizer('https://evil.example/a.png')).status, 400, 'no outside images'); assert.equal(open.headers.get('x-content-type-options'), 'nosniff'); assert.equal(open.headers.get('content-type'), 'image/png');
   for (const bad of ['/api/photos/..%2f..%2f.env.local', '/api/photos/' + 'A'.repeat(36), '/api/photos/not-a-uuid']) assert.equal((await send(bad)).status, 404, bad);
 });
 
@@ -241,21 +246,21 @@ test('Search Console file is served as-is and Analytics stays off until it is co
   assert.equal(file.status, 200); assert.equal((await file.text()).trim(), 'google-site-verification: google21fbcf3f19f788d4.html');
   assert.notEqual(file.headers.get('x-robots-tag'), 'noindex, nofollow', 'search engines may read the verification file');
   const plain = await (await send('/es')).text();
-  assert.ok(!plain.includes('gtag/js') && !plain.includes('cookie-settings'), 'no tracking and no cookie button without GA_MEASUREMENT_ID');
+  assert.ok(!plain.includes('gtag/js') && !plain.includes('class="cookie-settings"'), 'no tracking and no cookie button without GA_MEASUREMENT_ID');
   assert.match((await send('/es')).headers.get('content-security-policy'), /googletagmanager\.com/, 'CSP is ready for Analytics');
   const dir = mkdtempSync(path.resolve('test-results', 'analytics-'));
   analytics = await start(3033, { GA_MEASUREMENT_ID: 'G-TEST12345', SITE_URL: 'http://127.0.0.1:3033' }, dir);
   const on = await (await fetch('http://127.0.0.1:3033/en')).text();
-  assert.ok(on.includes('cookie-settings'), 'footer button to change the choice');
+  assert.ok(on.includes('class="cookie-settings"'), 'footer button to change the choice');
   assert.ok(!on.includes('gtag/js'), 'the script is not loaded before the visitor accepts');
   analytics.kill(); await once(analytics, 'exit');
   analytics = await start(3033, { GTM_ID: 'GTM-W2T9NZLJ', SITE_URL: 'http://127.0.0.1:3033' }, dir);
   const tagManager = await (await fetch('http://127.0.0.1:3033/en')).text();
-  assert.ok(tagManager.includes('cookie-settings'), 'Tag Manager is also behind the cookie choice'); assert.ok(!tagManager.includes('gtm.js'), 'and nothing loads before accepting');
+  assert.ok(tagManager.includes('class="cookie-settings"'), 'Tag Manager is also behind the cookie choice'); assert.ok(!tagManager.includes('gtm.js'), 'and nothing loads before accepting');
   analytics.kill(); await once(analytics, 'exit');
   analytics = await start(3033, { GA_MEASUREMENT_ID: 'G-<script>alert(1)</script>', GTM_ID: 'GTM-<b>x</b>', SITE_URL: 'http://127.0.0.1:3033' }, dir);
   const invalid = await (await fetch('http://127.0.0.1:3033/es')).text();
-  assert.ok(!invalid.includes('alert(1)') && !invalid.includes('cookie-settings'), 'an invalid id is ignored');
+  assert.ok(!invalid.includes('alert(1)') && !invalid.includes('class="cookie-settings"'), 'an invalid id is ignored');
 });
 
 test('IndexNow: the key is published and search engines are told about each change', async () => {
