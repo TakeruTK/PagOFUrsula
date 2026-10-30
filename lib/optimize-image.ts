@@ -5,7 +5,9 @@ import { PHOTO_MAX_EDGE } from './limits';
  * A phone picture of several MB ends up at a few hundred KB. If the browser cannot do it, the original is sent.
  */
 export async function optimizeImage(file: File): Promise<File> {
-  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return file;
+  // Anything that looks like a picture is tried: the browser decodes by content, so odd file types (image/jpg, none,
+  // HEIC on an iPhone) still end up as a small WebP. If it cannot read it, the original goes up and the server decides.
+  if (!/^image\//.test(file.type) && !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name)) return file;
   try {
     const bitmap = await createImageBitmap(file);
     const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(bitmap.width, bitmap.height));

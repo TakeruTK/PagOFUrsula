@@ -65,12 +65,21 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
   }
   const savePiece = (event: React.FormEvent) => { event.preventDefault(); void run(async () => { const saved = await api('/api/pieces', options(draft.id ? 'PUT' : 'POST', draft)); await Promise.all([refreshPieces(), refreshStatus()]); setEditing(false); setMessage(saved.warning ? 'Pieza guardada en español. ' + saved.warning : 'Pieza guardada y traducida. Los cambios ya están en tu página.'); }); };
   async function upload(files: FileList | null) {
-    if (!files) return;
-    if (files.length + draft.images.length > PHOTOS_PER_PIECE) { setError(`Puedes agregar hasta ${PHOTOS_PER_PIECE} fotografías por pieza.`); return; }
+    if (!files?.length) return;
+    const list = Array.from(files); // the browser empties the live list as soon as the input is reset
+    const room = PHOTOS_PER_PIECE - draft.images.length;
+    if (room <= 0) { setError(`Esta pieza ya tiene ${PHOTOS_PER_PIECE} fotografías, que es el máximo. Quita una para agregar otra.`); return; }
     setUploading(true); setError('');
-    const added: PhotoType[] = [];
-    try { for (const file of Array.from(files)) { const body = new FormData(); body.append('file', await optimizeImage(file)); added.push(await api('/api/photos', { method: 'POST', body })); } }
-    catch (e) { setError((e as Error).message); } finally { setDraft(p => ({ ...p, images: [...p.images, ...added] })); setUploading(false); }
+    const added: PhotoType[] = []; const failed: string[] = [];
+    // Every picture is tried on its own: one that cannot be used does not stop the others.
+    for (const file of list.slice(0, room)) {
+      try { const body = new FormData(); body.append('file', await optimizeImage(file)); added.push(await api('/api/photos', { method: 'POST', body })); }
+      catch (e) { failed.push(`«${file.name}»: ${(e as Error).message}`); }
+    }
+    setDraft(p => ({ ...p, images: [...p.images, ...added] })); setUploading(false);
+    const skipped = list.length - room;
+    const notes = [...failed, ...(skipped > 0 ? [`Solo caben ${PHOTOS_PER_PIECE} fotografías por pieza: ${skipped === 1 ? 'una no se agregó' : `${skipped} no se agregaron`}.`] : [])];
+    if (notes.length) setError(notes.join(' '));
   }
   // Reordering and hiding work straight from the list, so the owner never edits a number.
   const movePiece = (piece: Piece, direction: number) => void run(async () => {

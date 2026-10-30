@@ -116,6 +116,10 @@ test('uploads accept only real JPG, PNG and WebP and nothing else', async () => 
   const png = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), randomBytes(64)]);
   assert.equal((await upload(png, 'image/png')).status, 200);
   assert.equal((await upload(png, 'image/jpeg')).status, 400, 'declared type must match the content');
+  const jpeg = Buffer.concat([Buffer.from([255, 216, 255, 224]), randomBytes(64)]);
+  for (const named of ['image/jpeg', 'image/jpg', 'image/pjpeg', '']) assert.equal((await upload(jpeg, named)).status, 200, `a JPEG called "${named}" is accepted`);
+  assert.equal((await upload(jpeg, 'image/png')).status, 400, 'a JPEG announced as PNG is still refused');
+  assert.equal((await upload(Buffer.from('MZ' + 'x'.repeat(60)), '')).status, 400, 'an executable with no type is refused');
   assert.equal((await upload(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'), 'image/svg+xml')).status, 400, 'SVG');
   assert.equal((await upload(Buffer.from('<html><script>alert(1)</script></html>'), 'image/png')).status, 400, 'HTML disguised as PNG');
   assert.equal((await upload(Buffer.from('GIF89a' + 'x'.repeat(50)), 'image/gif')).status, 400, 'GIF');
