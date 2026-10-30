@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getDictionary } from '@/lib/dictionaries';
 import { isLocale, legalDocs, legalPath, locales, type LegalDoc, type Locale } from '@/lib/i18n';
-import { absolute, alternates, openGraphBase } from '@/lib/seo';
+import { absolute, alternates, openGraphBase, socialImage } from '@/lib/seo';
 import { getSettings } from '@/lib/store';
 
 export const dynamic = 'force-dynamic';
@@ -14,8 +14,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isLocale(lang) || !valid(doc)) return {};
   const dict = getDictionary(lang);
   const paths = Object.fromEntries(locales.map(l => [l, legalPath(l, doc)])) as Record<Locale, string>;
-  const description = `${dict.legal[doc]} · ${dict.site.name}`;
-  return { title: dict.legal[doc], description, alternates: alternates(lang, paths), openGraph: { ...openGraphBase(lang), title: dict.legal[doc], description, url: absolute(paths[lang]) } };
+  const description = dict.legal[`${doc}Description` as const];
+  return { title: dict.legal[doc], description, alternates: alternates(lang, paths), openGraph: { ...openGraphBase(lang), title: dict.legal[doc], description, url: absolute(paths[lang]) }, twitter: { card: 'summary_large_image' as const, title: dict.legal[doc], description, images: [socialImage(lang)] } };
 }
 
 export default async function Legal({ params }: Props) {

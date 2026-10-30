@@ -4,7 +4,7 @@ const es = {
   site: { name: 'Ursula Alcaino · Orfebrería' },
   meta: {
     homeTitle: 'Ursula Alcaino · Joyería de autora hecha a mano',
-    homeDescription: 'El lujo de lo irrepetible: joyas de autor creadas a mano para quienes encuentran belleza en lo singular y significado en lo extraordinario. Escríbenos para conseguir tu pieza.',
+    homeDescription: 'Joyas de autor hechas a mano en plata 950 por la orfebre chilena Ursula Alcaino. Piezas únicas para quienes encuentran belleza en lo singular.',
     notFoundTitle: 'Página no encontrada',
   },
   nav: { collection: 'Colección', about: 'Sobre mí', contact: 'Contacto', language: 'Idioma', menu: 'Abrir menú', menuTitle: 'Menú', close: 'Cerrar', home: 'Inicio' },
@@ -42,7 +42,7 @@ const es = {
   mail: { title: 'Escríbenos un correo', text: 'Si tu programa de correo no se abrió, copia nuestra dirección o redacta el mensaje desde tu correo en línea.', copy: 'Copiar correo', copied: '¡Copiado!', close: 'Cerrar' },
   cookies: { title: 'Cookies', text: 'Usamos Google Analytics, solo si lo aceptas, para saber cuántas personas visitan el sitio y mejorarlo. Si no lo aceptas, no se carga ninguna herramienta de seguimiento.', more: 'Política de privacidad', accept: 'Aceptar', reject: 'Rechazar', settings: 'Preferencias de cookies' },
   footer: { email: 'Correo electrónico', follow: 'Síguenos y escríbenos', terms: 'Condiciones', privacy: 'Privacidad', workshop: 'Acceso al taller', rights: '© {year} Ursula Alcaino · Orfebrería' },
-  legal: { terms: 'Condiciones de compra', privacy: 'Política de privacidad', empty: 'Este texto se publicará próximamente.', contact: 'Contacto' },
+  legal: { terms: 'Condiciones de compra', privacy: 'Política de privacidad', termsDescription: 'Condiciones de compra de Ursula Alcaino · Orfebrería: cómo se compra, precios, envíos, cambios, retracto y garantía de nuestras joyas hechas a mano.', privacyDescription: 'Política de privacidad de Ursula Alcaino · Orfebrería: qué datos recibimos, para qué los usamos, cookies y cómo ejercer tus derechos.', empty: 'Este texto se publicará próximamente.', contact: 'Contacto' },
   notFound: { title: 'No encontramos esta página.', text: 'Quizás la joya que buscas ya encontró su dueña. Vuelve a las piezas.', cta: 'Volver al inicio' },
 };
 
@@ -52,7 +52,7 @@ const en: Dictionary = {
   site: { name: 'Ursula Alcaino · Orfebrería' },
   meta: {
     homeTitle: 'Ursula Alcaino · Handmade Artisan Jewelry from Chile',
-    homeDescription: 'The luxury of the unrepeatable: handcrafted signature jewelry by Chilean silversmith Ursula Alcaino, for those who find beauty in the singular. Write to us to get your piece.',
+    homeDescription: 'Handmade signature jewelry in 950 silver by Chilean silversmith Ursula Alcaino. One-of-a-kind pieces for those who find beauty in the singular.',
     notFoundTitle: 'Page not found',
   },
   nav: { collection: 'Collection', about: 'About', contact: 'Contact', language: 'Language', menu: 'Open menu', menuTitle: 'Menu', close: 'Close', home: 'Home' },
@@ -90,7 +90,7 @@ const en: Dictionary = {
   mail: { title: 'Send us an email', text: 'If your mail program did not open, copy our address or write the message from your webmail.', copy: 'Copy email', copied: 'Copied!', close: 'Close' },
   cookies: { title: 'Cookies', text: 'We use Google Analytics, only if you accept, to learn how many people visit the site and to improve it. If you decline, no tracking tool is loaded.', more: 'Privacy policy', accept: 'Accept', reject: 'Decline', settings: 'Cookie preferences' },
   footer: { email: 'Email', follow: 'Follow and write to us', terms: 'Terms', privacy: 'Privacy', workshop: 'Workshop access', rights: '© {year} Ursula Alcaino · Orfebrería' },
-  legal: { terms: 'Terms of sale', privacy: 'Privacy policy', empty: 'This text will be published soon.', contact: 'Contact' },
+  legal: { terms: 'Terms of sale', privacy: 'Privacy policy', termsDescription: 'Terms of sale of Ursula Alcaino · Orfebrería: how to buy, prices, shipping, returns, right of withdrawal and warranty for our handmade jewelry.', privacyDescription: 'Privacy policy of Ursula Alcaino · Orfebrería: what data we receive, how we use it, cookies and how to exercise your rights.', empty: 'This text will be published soon.', contact: 'Contact' },
   notFound: { title: 'We could not find this page.', text: 'Maybe the piece you were looking for already found its owner. Go back to the pieces.', cta: 'Back to home' },
 };
 
@@ -99,7 +99,7 @@ const pt: Dictionary = {
   site: { name: 'Ursula Alcaino · Orfebrería' },
   meta: {
     homeTitle: 'Ursula Alcaino · Joias de autor feitas à mão no Chile',
-    homeDescription: 'O luxo do irrepetível: joias de autor criadas à mão para quem encontra beleza no singular e significado no extraordinário. Escreva-nos para conseguir a sua peça.',
+    homeDescription: 'Joias de autor feitas à mão em prata 950 pela ourives chilena Ursula Alcaino. Peças únicas para quem encontra beleza no singular.',
     notFoundTitle: 'Página não encontrada',
   },
   nav: { collection: 'Coleção', about: 'Sobre', contact: 'Contato', language: 'Idioma', menu: 'Abrir menu', menuTitle: 'Menu', close: 'Fechar', home: 'Início' },
@@ -137,7 +137,7 @@ const pt: Dictionary = {
   mail: { title: 'Escreva-nos um e-mail', text: 'Se o seu programa de e-mail não abriu, copie o nosso endereço ou escreva a mensagem pelo seu e-mail online.', copy: 'Copiar e-mail', copied: 'Copiado!', close: 'Fechar' },
   cookies: { title: 'Cookies', text: 'Usamos o Google Analytics, apenas se você aceitar, para saber quantas pessoas visitam o site e melhorá-lo. Se não aceitar, nenhuma ferramenta de rastreamento é carregada.', more: 'Política de privacidade', accept: 'Aceitar', reject: 'Recusar', settings: 'Preferências de cookies' },
   footer: { email: 'E-mail', follow: 'Siga-nos e escreva-nos', terms: 'Condições', privacy: 'Privacidade', workshop: 'Acesso ao ateliê', rights: '© {year} Ursula Alcaino · Orfebrería' },
-  legal: { terms: 'Condições de compra', privacy: 'Política de privacidade', empty: 'Este texto será publicado em breve.', contact: 'Contato' },
+  legal: { terms: 'Condições de compra', privacy: 'Política de privacidade', termsDescription: 'Condições de compra da Ursula Alcaino · Orfebrería: como comprar, preços, envios, trocas, direito de arrependimento e garantia das nossas joias feitas à mão.', privacyDescription: 'Política de privacidade da Ursula Alcaino · Orfebrería: que dados recebemos, para que os usamos, cookies e como exercer os seus direitos.', empty: 'Este texto será publicado em breve.', contact: 'Contato' },
   notFound: { title: 'Não encontramos esta página.', text: 'Talvez a joia que você procura já tenha encontrado a sua dona. Volte às peças.', cta: 'Voltar ao início' },
 };
 
@@ -145,7 +145,7 @@ const fr: Dictionary = {
   site: { name: 'Ursula Alcaino · Orfebrería' },
   meta: {
     homeTitle: 'Ursula Alcaino · Bijoux d’auteur faits main au Chili',
-    homeDescription: 'Le luxe de ce qui ne se répète pas : des bijoux d’auteur façonnés à la main pour celles et ceux qui trouvent la beauté dans le singulier. Écrivez-nous pour obtenir votre pièce.',
+    homeDescription: 'Bijoux d’auteur faits main en argent 950 par l’orfèvre chilienne Ursula Alcaino. Des pièces uniques pour celles et ceux qui aiment le singulier.',
     notFoundTitle: 'Page introuvable',
   },
   nav: { collection: 'Collection', about: 'À propos', contact: 'Contact', language: 'Langue', menu: 'Ouvrir le menu', menuTitle: 'Menu', close: 'Fermer', home: 'Accueil' },
@@ -183,7 +183,7 @@ const fr: Dictionary = {
   mail: { title: 'Écrivez-nous un e-mail', text: 'Si votre programme de messagerie ne s’est pas ouvert, copiez notre adresse ou rédigez le message depuis votre webmail.', copy: 'Copier l’adresse', copied: 'Copié !', close: 'Fermer' },
   cookies: { title: 'Cookies', text: 'Nous utilisons Google Analytics, uniquement si vous l’acceptez, pour savoir combien de personnes visitent le site et l’améliorer. Si vous refusez, aucun outil de suivi n’est chargé.', more: 'Politique de confidentialité', accept: 'Accepter', reject: 'Refuser', settings: 'Préférences en matière de cookies' },
   footer: { email: 'E-mail', follow: 'Suivez-nous et écrivez-nous', terms: 'Conditions', privacy: 'Confidentialité', workshop: 'Accès à l’atelier', rights: '© {year} Ursula Alcaino · Orfebrería' },
-  legal: { terms: 'Conditions d’achat', privacy: 'Politique de confidentialité', empty: 'Ce texte sera publié prochainement.', contact: 'Contact' },
+  legal: { terms: 'Conditions d’achat', privacy: 'Politique de confidentialité', termsDescription: 'Conditions d’achat d’Ursula Alcaino · Orfebrería : comment acheter, prix, livraison, échanges, droit de rétractation et garantie de nos bijoux faits main.', privacyDescription: 'Politique de confidentialité d’Ursula Alcaino · Orfebrería : quelles données nous recevons, comment nous les utilisons, cookies et comment exercer vos droits.', empty: 'Ce texte sera publié prochainement.', contact: 'Contact' },
   notFound: { title: 'Nous n’avons pas trouvé cette page.', text: 'Peut-être que le bijou que vous cherchiez a déjà trouvé sa propriétaire. Retournez aux pièces.', cta: 'Retour à l’accueil' },
 };
 

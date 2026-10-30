@@ -301,3 +301,20 @@ test('a piece uploaded later never shows up on the home page by itself; the owne
   assert.ok(chosen.includes(encodeURIComponent(pickedUrl)) || chosen.includes(pickedUrl), 'the chosen photo is on the home page');
   assert.ok(!chosen.includes(encodeURIComponent(laterUrl)) && !chosen.includes(laterUrl), 'and the piece uploaded later still stays off the home page');
 });
+
+test('SEO basics on every kind of page: social image, description length, manifest and security.txt', async () => {
+  const pages = ['/es', '/en', '/pt', '/fr', '/es/coleccion', '/en/about', '/pt/contato', '/fr/conditions', '/es/privacidad', '/en/terms', '/pt/privacidade', '/fr/confidentialite'];
+  for (const p of pages) {
+    const html = await (await send(p)).text(); const head = html.slice(0, html.indexOf('</head>'));
+    const lang = p.split('/')[1];
+    assert.match(head, new RegExp(`property="og:image" content="https://ursulaalcainoorfebreria\.com/${lang}/opengraph-image"`), `og:image on ${p}`);
+    assert.match(head, /name="twitter:image"/, `twitter:image on ${p}`);
+    const description = (head.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '';
+    assert.ok(description.length >= 70 && description.length <= 165, `description of ${p} has ${description.length} characters`);
+  }
+  const manifest = await send('/manifest.webmanifest'); assert.equal(manifest.status, 200); assert.equal((await manifest.json()).short_name, 'Ursula Alcaino');
+  const security = await send('/.well-known/security.txt'); assert.equal(security.status, 200); assert.match(await security.text(), /^Contact: mailto:/);
+  assert.equal((await send('/es/opengraph-image')).status, 200); assert.match((await send('/es/opengraph-image')).headers.get('content-type'), /image\/png/);
+  const home = await (await send('/es')).text();
+  assert.ok(/"contactPoint":\{"@type":"ContactPoint"/.test(home) || !/"email"/.test(home), 'contact point is published when there is an email');
+});

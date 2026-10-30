@@ -20,7 +20,9 @@ export const breadcrumbs = (trail: { name: string; path: string }[]) => ({
   itemListElement: trail.map((item, i) => ({ '@type': 'ListItem', position: i + 1, name: item.name, item: absolute(item.path) })),
 });
 export const robotsMeta = (): Metadata['robots'] => (allowIndexing() ? { index: true, follow: true, 'max-image-preview': 'large' } : { index: false, follow: false });
-export const openGraphBase = (locale: Locale) => ({ siteName: 'Ursula Alcaino · Orfebrería', locale: ogLocale[locale], alternateLocale: locales.filter(l => l !== locale).map(l => ogLocale[l]), type: 'website' as const });
+/** The social card of a language (generated in app/[lang]/opengraph-image.tsx): pages without a photo of their own use it. */
+export const socialImage = (locale: Locale) => absolute(`/${locale}/opengraph-image`);
+export const openGraphBase = (locale: Locale) => ({ siteName: 'Ursula Alcaino · Orfebrería', locale: ogLocale[locale], alternateLocale: locales.filter(l => l !== locale).map(l => ogLocale[l]), type: 'website' as const, images: [{ url: socialImage(locale), width: 1200, height: 630, alt: 'Ursula Alcaino · Orfebrería' }] });
 
 /** Serialises JSON-LD safely for a <script> tag. */
 export const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, '\\u003c');
@@ -31,6 +33,6 @@ export function pageMetadata(locale: Locale, key: PageKey, title: string, descri
   return {
     title, description, alternates: alternates(locale, paths),
     openGraph: { ...openGraphBase(locale), title, description, url: absolute(paths[locale]) },
-    twitter: { card: 'summary_large_image', title, description },
+    twitter: { card: 'summary_large_image', title, description, images: [socialImage(locale)] },
   };
 }

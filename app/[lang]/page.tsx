@@ -50,7 +50,9 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   const organization = {
     '@context': 'https://schema.org', '@type': 'Organization', '@id': absolute('/#organization'), name: 'Ursula Alcaino · Orfebrería', url: absolute('/'),
     logo: absolute('/brand/logo-dark.png'), sameAs: [settings.instagram, settings.facebook, settings.tiktok].filter(Boolean), ...(settings.contactEmail ? { email: settings.contactEmail } : {}),
-    description: dict.meta.homeDescription, founder: { '@type': 'Person', name: 'Ursula Alcaino' },
+    description: dict.meta.homeDescription, founder: { '@type': 'Person', name: 'Ursula Alcaino' }, image: absolute('/brand/logo-dark.png'),
+    knowsLanguage: ['es', 'en', 'pt', 'fr'], areaServed: 'Worldwide',
+    ...(settings.contactEmail || settings.whatsapp ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', availableLanguage: ['Spanish', 'English', 'Portuguese', 'French'], ...(settings.contactEmail ? { email: settings.contactEmail } : {}), ...(settings.whatsapp ? { telephone: settings.whatsapp } : {}) } } : {}),
   };
   const website = { '@context': 'https://schema.org', '@type': 'WebSite', '@id': absolute('/#website'), url: absolute('/'), name: 'Ursula Alcaino · Orfebrería', inLanguage: locales, publisher: { '@id': absolute('/#organization') } };
 
