@@ -203,7 +203,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 .scene canvas{display:block;opacity:0;animation:scene-in 1.6s ease .1s forwards}
 @keyframes scene-in{to{opacity:1}}
 .hero-inner>*{opacity:0;transform:translateY(18px);animation:rise 1.1s cubic-bezier(.2,.7,.2,1) forwards}
-.hero-inner h1{animation-delay:.15s}.hero-inner .hero-rule{animation-delay:.45s}.hero-inner .eyebrow{animation-delay:.6s}.hero-inner .hero-tagline{animation-delay:.8s}
+/* the logo is the first thing painted, so it fades in quickly and without delay */
+.hero-inner h1{animation-duration:.45s;animation-delay:0s}.hero-inner .hero-rule{animation-delay:.45s}.hero-inner .eyebrow{animation-delay:.6s}.hero-inner .hero-tagline{animation-delay:.8s}
 .hero-rule{transform-origin:center;animation-name:rule!important}
 @keyframes rise{to{opacity:1;transform:none}}
 @keyframes rule{from{opacity:0;transform:scaleX(0)}to{opacity:1;transform:scaleX(1)}}
