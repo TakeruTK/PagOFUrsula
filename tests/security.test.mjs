@@ -96,7 +96,7 @@ test('profile links and numbers only accept what they should', async () => {
 test('pieces reject malformed, oversized, foreign and unknown data', async () => {
   await login();
   const post = body => send('/api/pieces', { method: 'POST', auth: true, body });
-  for (const bad of [piece({ name: '' }), piece({ name: 'x'.repeat(101) }), piece({ category: 'Inventada' }), piece({ status: 'Otro' }), piece({ price: -1 }), piece({ price: 1.5 }), piece({ images: [] }), piece({ images: Array(9).fill({ url: '/references/silver.png', caption: '' }) }),
+  for (const bad of [piece({ name: '' }), piece({ name: 'x'.repeat(101) }), piece({ category: 'Inventada' }), piece({ status: 'Otro' }), piece({ price: -1 }), piece({ price: 1.5 }), piece({ images: [] }), piece({ images: Array(5).fill({ url: '/references/silver.png', caption: '' }) }), piece({ images: Array(9).fill({ url: '/references/silver.png', caption: '' }) }),
     piece({ images: [{ url: 'https://evil.example/a.png', caption: '' }] }), piece({ images: [{ url: '/api/photos/../../.env', caption: '' }] }), piece({ images: [{ url: '/api/photos/00000000-0000-0000-0000-000000000000', caption: '' }] }), piece({ slug: '../etc' }), piece({ slug: 'Mayusculas' }), piece({ description: 'corta' })])
     assert.equal((await post(bad)).status, 400, JSON.stringify(bad).slice(0, 80));
   assert.equal((await send('/api/pieces', { method: 'POST', auth: true, raw: '{no es json' })).status, 400);

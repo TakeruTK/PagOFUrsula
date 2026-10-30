@@ -70,7 +70,7 @@ Antes de abrir al público: define `SITE_URL` (https), sube fotografías reales,
 4. **Acceso al taller**: en el servidor, `pnpm admin:setup` y guardar la contraseña que muestra.
 5. **Arranque**: `pnpm build && pnpm start -- --hostname 0.0.0.0` detrás de HTTPS.
 6. **Respaldo**: el sitio guarda solo una copia diaria (las últimas 7) en `DATA_DIR/backups`. Copia esa carpeta a otro lugar con regularidad: si se pierde el disco, se pierden también los respaldos.
-7. **Fotos**: se reducen solas en el navegador (máximo 1800 px, WebP) y el servidor las limita a 2 MB cada una, 6 por pieza, 6 en la portada y 150 MB en total (`PHOTO_STORAGE_MB` lo cambia). Las fotos sin uso se borran solas después de un día.
+7. **Fotos**: se reducen solas en el navegador (máximo 1800 px, WebP) y el servidor las limita a 2 MB cada una, 4 por pieza, 6 en la portada y 150 MB en total (`PHOTO_STORAGE_MB` lo cambia). Las fotos sin uso se borran solas después de un día.
 
 ## Validación
 
