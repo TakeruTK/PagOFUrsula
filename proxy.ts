@@ -32,6 +32,9 @@ export function proxy(request: NextRequest) {
   }
   const privateArea = pathname.startsWith('/admin') || pathname.startsWith('/api/');
   if (!allowIndexing() || privateArea) response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  // Public pages may be kept by a CDN for a minute (and served while it refreshes), so visitors far from the server
+  // are answered from a nearby copy. Browsers always ask again, and the workshop and the API are never stored.
+  if (allowIndexing() && !privateArea && isLocale(parts[1]) && request.method === 'GET') response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
   if (isHttps()) response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   return response;
 }

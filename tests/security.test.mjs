@@ -318,3 +318,12 @@ test('SEO basics on every kind of page: social image, description length, manife
   const home = await (await send('/es')).text();
   assert.ok(/"contactPoint":\{"@type":"ContactPoint"/.test(home) || !/"email"/.test(home), 'contact point is published when there is an email');
 });
+
+test('public pages can be kept by a CDN for a minute; the workshop, the API and photos of drafts never are', async () => {
+  for (const url of ['/es', '/en/collection', '/pt/colecao', '/fr/conditions']) {
+    const r = await send(url); const cache = r.headers.get('cache-control') || ''; await r.text();
+    assert.match(cache, /public/, `${url}: ${cache}`); assert.match(cache, /s-maxage=60/); assert.match(cache, /max-age=0/);
+  }
+  for (const url of ['/admin', '/api/pieces', '/api/admin/status']) assert.doesNotMatch((await send(url)).headers.get('cache-control') || '', /public|s-maxage/, url);
+  assert.equal((await send('/es')).headers.get('cross-origin-resource-policy'), 'same-site');
+});
