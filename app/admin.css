@@ -143,6 +143,8 @@ h1,h2,h3{font-family:var(--serif);font-weight:400}
 .picker-grid button{position:relative;border:2px solid transparent;padding:0}
 .picker-grid button:hover{border-color:var(--gold)}
 .picker-grid .photo{height:130px!important;aspect-ratio:auto!important}
+.picker-grid button.on{border-color:var(--olive,#272b00);outline:2px solid #272b00}
+.pick-mark{position:absolute;top:6px;right:6px;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#272b00;color:#fff}
 .picker-grid small{position:absolute;inset:auto 0 0;padding:4px 6px;background:rgba(15,14,12,.65);color:#fff;font-size:11px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lang-tabs{display:flex;gap:6px;margin-bottom:18px}
 .lang-tabs button{padding:9px 18px;border:1px solid var(--line);font-size:13px;background:#fff}

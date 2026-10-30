@@ -112,16 +112,21 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
     } catch (e) { setError((e as Error).message); } finally { setUploading(false); }
   }
   function choosePhoto(photo: PhotoType) {
-    if (picker === 'hero') {
-      if (settings.images.hero.length >= HOME_PHOTOS) { setError(`La portada admite hasta ${HOME_PHOTOS} fotos.`); setPicker(null); return; }
-      setSettings(s => ({ ...s, images: { ...s.images, hero: [...s.images.hero, photo] } }));
-    } else setSettings(s => ({ ...s, images: { ...s.images, about: photo } }));
+    setSettings(s => ({ ...s, images: { ...s.images, about: photo } }));
     setPicker(null); setMessage('Foto elegida. Recuerda presionar “Guardar fotos del inicio”.');
+  }
+  // The home photos are picked several at a time: tap to add, tap again to remove.
+  const onHome = (photo: PhotoType) => settings.images.hero.some(h => photoKey(h) === photoKey(photo));
+  function toggleHome(photo: PhotoType) {
+    if (onHome(photo)) { heroPhotos(list => list.filter(h => photoKey(h) !== photoKey(photo))); setError(''); return; }
+    if (settings.images.hero.length >= HOME_PHOTOS) { setError(`El inicio admite hasta ${HOME_PHOTOS} fotos. Quita una para agregar otra.`); return; }
+    setError(''); heroPhotos(list => [...list, photo]);
   }
   const heroPhotos = (patch: (list: PhotoType[]) => PhotoType[]) => setSettings(s => ({ ...s, images: { ...s.images, hero: patch(s.images.hero) } }));
   function moveHero(index: number, direction: number) { heroPhotos(list => { const next = [...list];[next[index], next[index + direction]] = [next[index + direction], next[index]]; return next; }); }
   const photoKey = (i: PhotoType) => i.url + JSON.stringify(i.crop || '');
-  const library = Array.from(new Map([...pieces.flatMap(p => p.images.map(i => [photoKey(i), { photo: i, label: p.name }] as const)), ...settings.images.hero.map(i => [photoKey(i), { photo: i, label: 'Portada' }] as const)]).values());
+  // The pieces' names win over "Portada" when the same photo is in both lists.
+  const library = Array.from(new Map([...settings.images.hero.map(i => [photoKey(i), { photo: i, label: 'Portada' }] as const), ...pieces.flatMap(p => p.images.map(i => [photoKey(i), { photo: i, label: p.name }] as const))]).values());
 
   const reorderable = !filter && visibility === 'Todas';
   const shownPieces = pieces.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()) && (visibility === 'Todas' || p.status === visibility));
@@ -144,7 +149,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
     <main className="studio-main">
       <header className="studio-top"><span><LayoutDashboard size={17} /> EL TALLER DE URSULA</span><Link href="/" target="_blank">Visitar página <ArrowUpRight size={15} /></Link></header>
       <div className="studio-content">
-        <div className="section-heading"><div><p className="eyebrow">TODO COMIENZA CON UNA IDEA</p><h1>{TITLES[tab]}</h1></div>{tab === 'pieces' && <div className="row-actions"><button className="button ghost" disabled={busy} title="Escribe las traducciones que falten en inglés, portugués y francés" onClick={translateAll}><Languages size={17} /> Traducir todo</button><button className="button" onClick={() => edit()}><Plus size={17} /> Nueva pieza</button></div>}</div>
+        <div className="section-heading"><div><p className="eyebrow">TODO COMIENZA CON UNA IDEA</p><h1>{TITLES[tab]}</h1></div>{tab === 'pieces' && <div className="row-actions"><button className="button ghost" onClick={() => void selectTab('images')} title="Elige qué fotos salen en el inicio de tu página"><Images size={17} /> Fotos del inicio</button><button className="button ghost" disabled={busy} title="Escribe las traducciones que falten en inglés, portugués y francés" onClick={translateAll}><Languages size={17} /> Traducir todo</button><button className="button" onClick={() => edit()}><Plus size={17} /> Nueva pieza</button></div>}</div>
         {message && <p className="success-box" role="status"><Check size={17} />{message}</p>}
         {error && !editing && !deleting && <p className="error-box" role="alert">{error}</p>}
 
@@ -206,14 +211,14 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
         </>}
 
         {tab === 'images' && <form className="settings-form" onSubmit={e => saveSettings(e, 'Las fotos del inicio quedaron guardadas.')}>
-          <p className="admin-explainer">Aquí eliges las fotografías que se ven en el inicio de tu página. Los cambios se publican al presionar <strong>Guardar fotos del inicio</strong>. Si no eliges ninguna, la página usa las fotos de tus piezas destacadas.</p>
+          <p className="admin-explainer">Aquí eliges qué fotografías se ven en el inicio de tu página. <strong>Las piezas nuevas no salen en el inicio a menos que tú las elijas aquí.</strong> Los cambios se publican al presionar <strong>Guardar fotos del inicio</strong>.</p>
           <div className="settings-card">
             <span className="step-label">01 / PORTADA · FOTOS FLOTANTES</span>
             <p className="field-help">Son las láminas que flotan en 3D alrededor de tu nombre al abrir la página. Entre 4 y 6 fotos se ven mejor. La primera también es el fondo de la portada en equipos antiguos. Usa fotos verticales o cuadradas, con buena luz.</p>
             <div className="slot-actions" style={{ marginTop: 0 }}>
-              <label className="button small" style={{ position: 'relative', cursor: 'pointer' }}><ImagePlus size={16} /> {uploading ? 'Subiendo…' : 'Subir fotos'}<input aria-label="Subir fotos de la portada" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || uploading} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} onChange={e => { void uploadHome(e.target.files, 'hero'); e.target.value = ''; }} /></label>
-              <button type="button" className="button outline small" onClick={() => setPicker('hero')}>Elegir de mis piezas</button>
-              {settings.images.hero.length > 0 && <button type="button" className="button outline small" onClick={() => heroPhotos(() => [])}>Volver a la selección automática</button>}
+              <button type="button" className="button small" onClick={() => setPicker('hero')}><Images size={16} /> Elegir fotos de mis piezas</button>
+              <label className="button outline small" style={{ position: 'relative', cursor: 'pointer' }}><ImagePlus size={16} /> {uploading ? 'Subiendo…' : 'Subir otras fotos'}<input aria-label="Subir fotos de la portada" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || uploading} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} onChange={e => { void uploadHome(e.target.files, 'hero'); e.target.value = ''; }} /></label>
+              {settings.images.hero.length > 0 && <button type="button" className="button outline small" onClick={() => heroPhotos(() => [])}>Quitar todas</button>}
             </div>
             {settings.images.hero.length ? <div className="photo-grid">{settings.images.hero.map((image, index) => <div className="photo-card" key={image.url + index}>
               <Photo photo={image} alt={`Foto ${index + 1} de la portada`} />
@@ -223,7 +228,10 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
                 <button type="button" aria-label={`Quitar foto ${index + 1}`} onClick={() => heroPhotos(list => list.filter((_, i) => i !== index))}><X size={14} /></button>
               </div>
               <input aria-label={`Descripción de la foto ${index + 1}`} placeholder="Descripción breve (opcional)" maxLength={200} value={image.caption} onChange={e => heroPhotos(list => list.map((im, i) => (i === index ? { ...im, caption: e.target.value } : im)))} />
-            </div>)}</div> : <p className="field-help" style={{ marginTop: 18, marginBottom: 0 }}>Ahora la portada usa automáticamente las fotos de tus piezas destacadas.</p>}
+            </div>)}</div> : <>
+              <p className="field-help" style={{ marginTop: 18 }}>Todavía no elegiste fotos: el inicio muestra las piezas marcadas como destacadas. Elige las que quieras con el botón de arriba.</p>
+              <div className="photo-grid">{pieces.filter(p => p.status === 'Publicado' && p.featured).slice(0, HOME_PHOTOS).map(p => <div className="photo-card" key={p.id}><Photo photo={p.images[0]} alt={p.name} /><div className="photo-tools"><span>{p.name}</span></div></div>)}</div>
+            </>}
           </div>
           <div className="settings-card">
             <span className="step-label">02 / SOBRE MÍ · FOTOGRAFÍA</span>
@@ -312,7 +320,7 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
               <div className="form-row">
                 <label className="field">Visibilidad<select value={draft.status} onChange={e => setDraft({ ...draft, status: e.target.value as Piece['status'] })}><option>Borrador</option><option>Publicado</option></select></label>
               </div>
-              <label className="check-field"><input type="checkbox" checked={draft.featured} onChange={e => setDraft({ ...draft, featured: e.target.checked })} /> Usar su fotografía como fondo de la portada</label>
+              <label className="check-field"><input type="checkbox" checked={draft.featured} onChange={e => setDraft({ ...draft, featured: e.target.checked })} /> Pieza destacada: su foto puede salir en el inicio cuando no elegiste fotos en «Fotos del inicio»</label>
               <p className="field-help">{draft.status === 'Borrador' ? 'Solo tú puedes ver esta pieza y sus fotografías subidas.' : 'Al guardar, esta pieza aparecerá en tu página.'}</p>
             <details className="translations"><summary><strong>Traducciones automáticas</strong> · inglés, portugués y francés</summary>
             <div className="lang-tabs" role="tablist">{others.map(l => <button key={l} type="button" role="tab" aria-selected={editLang === l} className={editLang === l ? 'active' : ''} onClick={() => setEditLang(l)}>{nativeName[l]}{filled(draft, l) ? ' ✓' : ''}</button>)}</div>
@@ -330,8 +338,15 @@ export default function Studio({ initialPieces, initialSettings, initialStatus }
       </form>
     </Modal>
 
-    <Modal open={!!picker} onClose={() => setPicker(null)} title="Elegir una foto" description="Toca la foto que quieres usar. Son las fotografías de tus piezas.">
-      <div className="picker-grid">{library.map(({ photo, label }) => <button key={photoKey(photo)} type="button" aria-label={`Usar la foto de ${label}`} onClick={() => choosePhoto(photo)}><Photo photo={photo} alt="" /><small>{label}</small></button>)}</div>
+    <Modal open={!!picker} onClose={() => { setPicker(null); setError(''); }} title={picker === 'hero' ? 'Fotos del inicio' : 'Elegir una foto'} description={picker === 'hero' ? `Toca las fotos que quieres en el inicio (hasta ${HOME_PHOTOS}). Las elegidas llevan una marca ✓. Tócalas otra vez para quitarlas.` : 'Toca la foto que quieres usar. Son las fotografías de tus piezas.'}>
+      <div className="picker-grid">{library.map(({ photo, label }) => {
+        const on = picker === 'hero' && onHome(photo);
+        return <button key={photoKey(photo)} type="button" className={on ? 'on' : ''} aria-pressed={picker === 'hero' ? on : undefined} aria-label={`${picker === 'hero' ? (on ? 'Quitar' : 'Agregar') : 'Usar'} la foto de ${label}`} onClick={() => (picker === 'hero' ? toggleHome(photo) : choosePhoto(photo))}><Photo photo={photo} alt="" />{on && <span className="pick-mark"><Check size={16} /></span>}<small>{label}</small></button>;
+      })}</div>
+      {picker === 'hero' && <>
+        {error && <p className="error-box" role="alert">{error}</p>}
+        <div className="editor-footer"><span className="field-help">{settings.images.hero.length} de {HOME_PHOTOS} elegidas</span><button type="button" className="button" onClick={() => { setPicker(null); setError(''); setMessage('Listo. Recuerda presionar “Guardar fotos del inicio” para publicarlas.'); }}>Listo</button></div>
+      </>}
     </Modal>
 
     <Modal open={!!deleting} onClose={() => { if (!busy) setDeleting(null); }} title="¿Eliminar esta pieza?" description={`“${deleting?.name || ''}” se retirará de tu página. Esta acción no se puede deshacer.`}>

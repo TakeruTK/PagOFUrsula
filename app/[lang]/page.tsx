@@ -38,11 +38,13 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   const text = textsFor(settings, lang);
   const cards = toCards(getPieces(), lang, settings.categories);
   const fallbackCover = (cards.find(p => p.featured) || cards[0] || toCards(initialPieces, lang, settings.categories)[0]).images[0];
-  // The owner can pick the home photos in the workshop; without a choice the featured pieces are used.
+  // The owner picks the home photos in the workshop. Until she does, only the pieces she marked as featured appear
+  // (and the first ones if she marked none): a piece uploaded later never shows up on the home page by itself.
   const chosen = settings.images.hero;
-  const sceneImages = chosen.length ? chosen : [...cards.filter(p => p.featured), ...cards.filter(p => !p.featured)].slice(0, 8).map(p => p.images[0]);
+  const automatic = cards.filter(p => p.featured).length ? cards.filter(p => p.featured) : cards.slice(0, 4);
+  const sceneImages = chosen.length ? chosen : automatic.slice(0, 6).map(p => p.images[0]);
   const cover = chosen[0] || fallbackCover;
-  const featured = [...cards.filter(p => p.featured), ...cards.filter(p => !p.featured)].slice(0, 3);
+  const featured = automatic.slice(0, 3);
   const handle = settings.instagram.split('/').filter(Boolean).pop();
 
   const organization = {

@@ -283,3 +283,21 @@ test('IndexNow: the key is published and search engines are told about each chan
   for (let i = 0; i < 30 && !pings.length; i++) await new Promise(r => setTimeout(r, 100));
   assert.ok(pings.at(-1)?.urlList.includes(`https://ursulaalcainoorfebreria.com/es/joyas/${slug}`), 'deleting also notifies so the page leaves the index');
 });
+
+test('a piece uploaded later never shows up on the home page by itself; the owner chooses the home photos', async () => {
+  const again = await send('/api/admin/login', { method: 'POST', body: { username, password: 'una-clave-nueva-muy-larga-1' } }); assert.equal(again.status, 200); cookie = again.headers.get('set-cookie').split(';')[0];
+  const upload = async () => { const form = new FormData(); form.append('file', new Blob([Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), randomBytes(80)])], { type: 'image/png' }), 'a.png'); return (await (await fetch(base + '/api/photos', { method: 'POST', headers: { Origin: base, Cookie: cookie }, body: form })).json()).url; };
+  const featuredUrl = await upload(), laterUrl = await upload(), pickedUrl = await upload();
+  const make = async (name, url, featured) => (await send('/api/pieces', { method: 'POST', auth: true, body: piece({ name, featured, images: [{ url, caption: '' }] }) })).status;
+  assert.equal(await make('Pieza destacada home', featuredUrl, true), 200); assert.equal(await make('Pieza subida despues', laterUrl, false), 200);
+  const home = await (await send('/es')).text();
+  assert.ok(home.includes(encodeURIComponent(featuredUrl)) || home.includes(featuredUrl), 'a featured piece may appear');
+  assert.ok(!home.includes(encodeURIComponent(laterUrl)) && !home.includes(laterUrl), 'a piece that is not featured stays off the home page');
+  // Choosing photos in the workshop replaces the automatic selection.
+  assert.equal(await make('Pieza elegida', pickedUrl, false), 200);
+  const settings = await (await send('/api/settings', { auth: true })).json();
+  assert.equal((await send('/api/settings', { method: 'PUT', auth: true, body: { ...settings, images: { ...settings.images, hero: [{ url: pickedUrl, caption: '' }] } } })).status, 200);
+  const chosen = await (await send('/es')).text();
+  assert.ok(chosen.includes(encodeURIComponent(pickedUrl)) || chosen.includes(pickedUrl), 'the chosen photo is on the home page');
+  assert.ok(!chosen.includes(encodeURIComponent(laterUrl)) && !chosen.includes(laterUrl), 'and the piece uploaded later still stays off the home page');
+});
