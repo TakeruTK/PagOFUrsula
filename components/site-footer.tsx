@@ -17,6 +17,7 @@ export default function SiteFooter({ lang, dict, social, analytics }: { lang: Lo
       <Link href={legalPath(lang, 'privacy')}>{dict.footer.privacy}</Link>
     </nav>
     <small>{fmt(dict.footer.rights, { year: new Date().getFullYear() })}</small>
+    <small className="credit">{dict.footer.credit} <a href="https://fixpc.cl/" target="_blank" rel="noopener">FixPC</a></small>
     {analytics && <CookieSettings label={dict.cookies.settings} />}
     <small className="tiny"><Link href="/admin" rel="nofollow">{dict.footer.workshop}</Link></small>
   </footer>;

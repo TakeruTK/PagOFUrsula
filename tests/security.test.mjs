@@ -331,3 +331,11 @@ test('public pages can be kept by a CDN for a minute; the workshop, the API and 
   for (const url of ['/admin', '/api/pieces', '/api/admin/status']) assert.doesNotMatch((await send(url)).headers.get('cache-control') || '', /public|s-maxage/, url);
   assert.equal((await send('/es')).headers.get('cross-origin-resource-policy'), 'same-site');
 });
+
+test('every page carries the FixPC signature in the footer, linking to fixpc.cl', async () => {
+  for (const [url, label] of [['/es', 'Sitio creado por'], ['/en', 'Website by'], ['/pt', 'Site criado pela'], ['/fr', 'Site créé par'], ['/es/coleccion', 'Sitio creado por'], ['/en/jewelry/missing', null]]) {
+    const r = await send(url); const html = await r.text();
+    if (!label) { assert.equal(r.status, 404); continue; }
+    assert.match(html, new RegExp(`${label}(?:<!-- -->)? <a href="https://fixpc\.cl/" target="_blank" rel="noopener">FixPC</a>`), `signature on ${url}`);
+  }
+});
