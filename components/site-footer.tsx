@@ -16,6 +16,7 @@ export default function SiteFooter({ lang, dict, social, analytics }: { lang: Lo
       <Link href={legalPath(lang, 'terms')}>{dict.footer.terms}</Link>
       <Link href={legalPath(lang, 'privacy')}>{dict.footer.privacy}</Link>
     </nav>
+    <p className="pay"><span>{dict.footer.pay}</span><img src="/brand/mercado-pago.svg" alt="Mercado Pago" width="99" height="40" loading="lazy" /></p>
     <small>{fmt(dict.footer.rights, { year: new Date().getFullYear() })}</small>
     <small className="credit">{dict.footer.credit} <a href="https://fixpc.cl/" target="_blank" rel="noopener">FixPC</a></small>
     {analytics && <CookieSettings label={dict.cookies.settings} />}

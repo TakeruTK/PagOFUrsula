@@ -47,7 +47,8 @@ test('there is no checkout, payment or order surface any more', async () => {
     const r = await request(p, { method: 'POST', body: {} }); assert.equal(r.status, 404, p);
   }
   const html = await (await request('/es')).text();
-  assert.doesNotMatch(html, /Mercado Pago|PayPal|Agregar a la bolsa|Bolsa/i);
+  // The footer only shows the Mercado Pago logo (the owner sends payment links); no gateway is built into the site.
+  assert.doesNotMatch(html, /PayPal|Agregar a la bolsa|Bolsa|mercadopago\.com|sdk\.mercadopago|checkout/i);
 });
 
 // ---- Security of private endpoints ---------------------------------------------------------------------------

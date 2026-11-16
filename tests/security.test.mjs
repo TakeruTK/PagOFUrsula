@@ -339,3 +339,12 @@ test('every page carries the FixPC signature in the footer, linking to fixpc.cl'
     assert.match(html, new RegExp(`${label}(?:<!-- -->)? <a href="https://fixpc\.cl/" target="_blank" rel="noopener">FixPC</a>`), `signature on ${url}`);
   }
 });
+
+test('the footer shows the Mercado Pago logo and the logo file is a plain, safe image', async () => {
+  for (const [url, label] of [['/es', 'Pagos con link de pago'], ['/en', 'Payment by secure link'], ['/pt', 'Pagamento por link de pagamento'], ['/fr', 'Paiement par lien de paiement']]) {
+    const html = await (await send(url)).text();
+    assert.ok(html.includes(label) && html.includes('src="/brand/mercado-pago.svg"') && html.includes('alt="Mercado Pago"'), `Mercado Pago in the footer of ${url}`);
+  }
+  const logo = await send('/brand/mercado-pago.svg'); assert.equal(logo.status, 200); assert.match(logo.headers.get('content-type'), /image\/svg\+xml/);
+  const svg = await logo.text(); assert.ok(svg.startsWith('<svg') && !/<script|onload=|onerror=|javascript:|<foreignObject/i.test(svg), 'the logo has no active content');
+});
